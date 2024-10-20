@@ -1,0 +1,14 @@
+{
+  "widgets": [
+    {
+      "widget": "text",
+      "window": {
+        "width": 500
+      },
+      "config": {
+        "text": "coucou",
+        "bullet": false
+      }
+    }
+  ]
+}
