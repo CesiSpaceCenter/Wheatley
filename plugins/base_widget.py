@@ -3,6 +3,7 @@ from plugins.base_plugin import BasePlugin
 
 
 class BaseWidget(BasePlugin):
+    default_config: dict
     config: dict
     default_window_config: dict
     _window_config: dict
@@ -14,7 +15,10 @@ class BaseWidget(BasePlugin):
         else:
             self._window_config = window_config
         self.window = dpg.add_window(**self._window_config, user_data=self)
-        if widget_config is not None:
+
+        if widget_config is None:
+            self.config = self.default_config
+        else:
             self.config = widget_config
 
     @property

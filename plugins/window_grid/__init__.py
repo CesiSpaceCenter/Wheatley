@@ -35,11 +35,11 @@ class WindowGrid(BasePlugin):
             return
 
         win_config = dpg.get_item_configuration(win)
-        if not win_config['no_resize'] and not win_config['autosize']:
+        if not win_config.get('no_resize', False) and not win_config.get('autosize', False):
             dpg.set_item_height(win, round(h / self.grid_size) * self.grid_size)
             dpg.set_item_width(win, round(w / self.grid_size) * self.grid_size)
 
-        if not win_config['no_move']:
+        if not win_config.get('no_move', False):
             x, y = dpg.get_item_pos(win)
             dpg.set_item_pos(win, [
                 round(x / self.grid_size) * self.grid_size,

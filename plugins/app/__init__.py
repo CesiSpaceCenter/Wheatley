@@ -3,7 +3,9 @@ import json
 
 from plugins.base_plugin import BasePlugin
 from plugins.base_widget import BaseWidget
-from plugins.text_widget import TextWidget
+
+from plugins.widgets.text import TextWidget
+from plugins.widgets.plot import PlotWidget
 
 # the "app" is the layout configuration created by the user
 # this plugin is responsible for loading an app file (creating all of the correspondig widgets)
@@ -13,7 +15,8 @@ from plugins.text_widget import TextWidget
 class App(BasePlugin):
     current_app_file = None
     widgets: dict[str, BaseWidget] = {
-        'text': TextWidget
+        'text': TextWidget,
+        'plot': PlotWidget
     }
 
     def __init__(self):
@@ -46,3 +49,9 @@ class App(BasePlugin):
             data = json.loads(f.read())
             for widget_data in data['widgets']:
                 widget = self.widgets[widget_data['widget']](widget_data['window'], widget_data['config'])
+
+    def render(self):
+        for window in dpg.get_all_items():
+            widget = dpg.get_item_user_data(window)
+            if isinstance(widget, BaseWidget) and hasattr(widget, 'render'):
+                widget.render()
