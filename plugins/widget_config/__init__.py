@@ -8,9 +8,9 @@ from plugins.base_widget import BaseWidget
 class WidgetConfig(BasePlugin):
     def __init__(self):
         self.window = dpg.add_window(label='Widget config', width=300, height=600)
-        self.active_widget = None
-        self.new_widget_config = None
-        self.new_window_config = None
+        self.active_widget: BaseWidget = None
+        self.new_widget_config: dict = None
+        self.new_window_config: dict = None
         self.inputs_group = dpg.add_group(parent=self.window)
         dpg.add_button(parent=self.window, label='Save', callback=self._save_config)
 
@@ -57,8 +57,7 @@ class WidgetConfig(BasePlugin):
             old_widget_config = self.active_widget.config.copy()
             old_window_config = self.active_widget.window_config.copy()
             dpg.delete_item(self.active_widget.window)
-            print(old_widget_config, old_window_config)
-            self.active_widget.__class__(
+            type(self.active_widget)(
                 {**old_window_config, **self.new_window_config},
                 {**old_widget_config, **self.new_widget_config}
             )
