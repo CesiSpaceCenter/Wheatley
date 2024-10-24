@@ -6,14 +6,20 @@ class BaseWidget(BasePlugin):
     default_config: dict
     config: dict
     default_window_config: dict
-    _window_config: dict
+    _window_config = {
+        'pos': (100, 100),
+        'width': 300,
+        'height': 200,
+        'label': 'Widget'
+    }
     window: int
 
     def __init__(self, window_config=None, widget_config=None):
         if window_config is None:
-            self._window_config = self.default_window_config
+            self._window_config = {**self._window_config, **self.default_window_config}
         else:
-            self._window_config = window_config
+            self._window_config = {**self._window_config, **window_config}
+
         self.window = dpg.add_window(**self._window_config, user_data=self)
 
         if widget_config is None:
