@@ -1,6 +1,6 @@
 import dearpygui.dearpygui as dpg
 
-from plugins import app, window_grid, widget_config
+from plugins import app, window_grid, widget_config, loading
 import plugins
 
 dpg.create_context()
@@ -12,7 +12,8 @@ plugin_manager = plugins.PluginManager()
 plugin_manager.register([
     app.App,
     widget_config.WidgetConfig,
-    window_grid.WindowGrid
+    window_grid.WindowGrid,
+    loading.Loading
 ])
 
 dpg.create_viewport(title='RCHC')

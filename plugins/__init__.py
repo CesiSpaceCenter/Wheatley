@@ -1,9 +1,14 @@
+from plugins.base_plugin import BasePlugin
+
+
 class PluginManager:
     plugins = []
 
-    def register(self, plugins: list):
-        for plugin in plugins:
-            self.plugins.append(plugin())
+    def register(self, plugins: list[type[BasePlugin]]):
+        for plugin_class in plugins:
+            plugin = plugin_class()
+            plugin_class.plugin = plugin
+            self.plugins.append(plugin)
 
     def _call_for_all(self, method: str):
         for plugin in self.plugins:
