@@ -41,7 +41,8 @@ class PlotWidget(BaseWidget):
 
         for data in self.config['data']:
             if data['unit'] not in self.y_axis:
-                self.y_axis[data['unit']] = dpg.add_plot_axis(axis=dpg.mvYAxis, parent=self.plot, label=data['unit'])
+                axis = [dpg.mvYAxis, dpg.mvYAxis2, dpg.mvYAxis3][len(self.y_axis)]
+                self.y_axis[data['unit']] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=data['unit'])
 
             self.series[data['name']] = dpg.add_line_series(parent=self.y_axis[data['unit']], label=data['name'], x=[], y=[])
             self.data_y[data['name']] = []
