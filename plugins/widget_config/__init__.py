@@ -3,6 +3,7 @@ import json
 import dearpygui.dearpygui as dpg
 from plugins.base_plugin import BasePlugin
 from plugins.base_widget import BaseWidget
+from utils import get_widget
 
 
 class WidgetConfig(BasePlugin):
@@ -70,7 +71,7 @@ class WidgetConfig(BasePlugin):
         active_window = dpg.get_active_window()
         if active_window == self.window:
             return
-        if active_window > 10 and isinstance(dpg.get_item_user_data(active_window), BaseWidget):
+        if active_window > 10 and get_widget(active_window):
             widget = dpg.get_item_user_data(active_window)
             if self.active_widget != widget:
                 self.new_widget_config = {}
