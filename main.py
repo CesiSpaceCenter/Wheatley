@@ -1,6 +1,12 @@
 import dearpygui.dearpygui as dpg
 
-from plugins import app, window_grid, widget_config, loading
+from plugins import (
+    app,
+    loading,
+    window_grid,
+    widget_config,
+    data_store
+)
 import plugins
 
 dpg.create_context()
@@ -11,9 +17,10 @@ with dpg.viewport_menu_bar(tag='menubar'):
 plugin_manager = plugins.PluginManager()
 plugin_manager.register([
     app.App,
+    loading.Loading,
     widget_config.WidgetConfig,
     window_grid.WindowGrid,
-    loading.Loading
+    data_store.DataStore
 ])
 
 dpg.create_viewport(title='RCHC')
