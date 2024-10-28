@@ -41,6 +41,7 @@ class WindowGrid(BasePlugin):
 
         if not win_config.get('no_move', False):
             x, y = dpg.get_item_pos(win)
+            y = y - self.menubar_height
             dpg.set_item_pos(win, [
                 round(x / self.grid_size) * self.grid_size,
                 round(y / self.grid_size) * self.grid_size + self.menubar_height
