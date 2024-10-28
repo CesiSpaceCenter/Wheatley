@@ -43,9 +43,9 @@ class WidgetConfig(BasePlugin):
             case 'bool':
                 dpg.add_checkbox(**item_config)
             case 'int':
-                dpg.add_slider_int(**item_config, max_value=1000)
+                dpg.add_input_int(**item_config)
             case 'float':
-                dpg.add_slider_float(**item_config, max_value=1000)
+                dpg.add_input_float(**item_config)
 
     def _update_widget_config(self, _, config_value: any, config_name: str):
         self.new_widget_config[config_name] = config_value
