@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 
 from plugins import (
+    fonts,
     app,
     loading,
     window_grid,
@@ -16,6 +17,7 @@ with dpg.viewport_menu_bar(tag='menubar'):
 
 plugin_manager = plugins.PluginManager()
 plugin_manager.register([
+    fonts.Fonts,
     app.App,
     loading.Loading,
     widget_config.WidgetConfig,
