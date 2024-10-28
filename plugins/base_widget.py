@@ -8,9 +8,12 @@ class BaseWidget(BasePlugin):
     default_window_config: dict
     _window_config = {
         'pos': (100, 100),
+        'min_size': (0, 0),
         'width': 300,
         'height': 200,
-        'label': 'Widget'
+        'label': 'Widget',
+        'no_scrollbar': False,
+        'no_scroll_with_mouse': False
     }
     window: int
 
