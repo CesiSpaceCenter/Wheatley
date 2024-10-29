@@ -10,6 +10,7 @@ from plugins.loading import Loading
 from plugins.widgets.text import TextWidget
 from plugins.widgets.plot import PlotWidget
 from plugins.widgets.numeric import NumericWidget
+from plugins.widgets.numeric_bar import NumericBarWidget
 from utils import get_widget
 
 # the "app" is the layout configuration created by the user
@@ -22,6 +23,7 @@ class App(BasePlugin):
     widgets = [
         ('text', TextWidget),
         ('plot', PlotWidget),
+        ('numeric bar', NumericBarWidget),
         ('numeric', NumericWidget)
     ]
 
