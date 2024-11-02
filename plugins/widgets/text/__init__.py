@@ -9,7 +9,6 @@ class TextWidget(BaseWidget):
     }
 
     default_window_config = {
-        'autosize': True
     }
 
     def __init__(self, *args):

@@ -20,8 +20,7 @@ class WidgetConfig(BasePlugin):
 
         dpg.add_separator(parent=self.inputs_group, label='Window config')
         for name, value in self.active_widget.window_config.items():
-            if name not in ['pos', 'width', 'height']:
-                self._get_input(name, value, self._update_window_config)
+            self._get_input(name, value, self._update_window_config)
 
         dpg.add_separator(parent=self.inputs_group, label='Widget config')
         for name, value in self.active_widget.config.items():
@@ -57,11 +56,14 @@ class WidgetConfig(BasePlugin):
         if self.active_widget is not None:
             old_widget_config = self.active_widget.config.copy()
             old_window_config = self.active_widget.window_config.copy()
-            dpg.delete_item(self.active_widget.window)
-            type(self.active_widget)(
+            window_tag = self.active_widget.window
+            new_widget = type(self.active_widget)(
                 {**old_window_config, **self.new_window_config},
-                {**old_widget_config, **self.new_widget_config}
+                {**old_widget_config, **self.new_widget_config},
+                window_tag
             )
+            new_widget.ready = True
+
 
     def _clear_inputs(self):
         for item in dpg.get_item_children(self.inputs_group, 1):

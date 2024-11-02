@@ -8,10 +8,6 @@ class BaseWidget(BasePlugin):
     config: dict
     default_window_config: dict
     _window_config = {
-        'pos': (100, 100),
-        'min_size': (0, 0),
-        'width': 300,
-        'height': 200,
         'label': 'Widget',
         'no_scrollbar': False,
         'no_scroll_with_mouse': False
@@ -28,8 +24,18 @@ class BaseWidget(BasePlugin):
 
         if window_tag is None:
             window_tag = uuid4().hex
+        self.window = window_tag
 
-        self.window = dpg.add_window(**self._window_config, user_data=self, tag=window_tag)
+        if dpg.does_item_exist(self.window):
+            # https://github.com/hoffstadt/DearPyGui/issues/1625
+            # don't reconfigure label if it hasn't changed, otherwise it will break the docking
+            window_config = self._window_config.copy()
+            if dpg.get_item_label(self.window) == window_config['label']:
+                del window_config['label']
+            dpg.configure_item(self.window, **window_config, user_data=self)
+            dpg.delete_item(self.window, children_only=True)
+        else:
+            self.window = dpg.add_window(**self._window_config, user_data=self)
 
         if widget_config is None:
             self.config = self.default_config
@@ -39,9 +45,6 @@ class BaseWidget(BasePlugin):
     @property
     def window_config(self) -> dict:
         window_config = self._window_config
-        window_config['width'] = dpg.get_item_width(self.window)
-        window_config['height'] = dpg.get_item_height(self.window)
-        window_config['pos'] = dpg.get_item_pos(self.window)
         return window_config
 
 
