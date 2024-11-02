@@ -77,6 +77,9 @@ class App(BasePlugin):
 
     def _save(self, path: str = None):
         if path is None:
+            if self.current_file is None:
+                self.save_file_dialog()
+                return
             path = self.current_file
         data = {
             'widgets': []
