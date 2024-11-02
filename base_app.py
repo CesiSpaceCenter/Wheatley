@@ -37,7 +37,7 @@ def run():
         app.App,
     ])
 
-    dpg.create_viewport(title='Wheatley')
+    dpg.create_viewport(title='Wheatley', small_icon='icon.png', large_icon='icon.png')
     dpg.setup_dearpygui()
     dpg.show_viewport()
 
