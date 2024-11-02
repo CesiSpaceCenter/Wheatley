@@ -16,8 +16,8 @@ class NumericWidget(BaseWidget):
     default_window_config = {
     }
 
-    def __init__(self, window_config=None, widget_config=None):
-        super(NumericWidget, self).__init__(window_config, widget_config)
+    def __init__(self, *args):
+        super(NumericWidget, self).__init__(*args)
 
         data_point = DataStore.plugin.dictionary[self.config['data_point']]
 
@@ -37,7 +37,11 @@ class NumericWidget(BaseWidget):
         dpg.bind_item_font(self.text, 'big')
 
     def render(self):
-        val = DataStore.plugin.data[self.config['data_point']][-1]
+        data = DataStore.plugin.data[self.config['data_point']]
+        if len(data) == 0:
+            return
+        val = data[-1]
+
         if self.config['round'] <= 0:
             val = int(val)
         else:

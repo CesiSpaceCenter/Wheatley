@@ -12,8 +12,8 @@ class TextWidget(BaseWidget):
         'autosize': True
     }
 
-    def __init__(self, window_config=None, widget_config=None):
-        super(TextWidget, self).__init__(window_config, widget_config)
+    def __init__(self, *args):
+        super(TextWidget, self).__init__(*args)
         self.text = dpg.add_text(
             default_value=self.config['text'],
             parent=self.window,

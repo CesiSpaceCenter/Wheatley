@@ -15,8 +15,8 @@ class PlotWidget(BaseWidget):
     default_window_config = {
     }
 
-    def __init__(self, window_config=None, widget_config=None):
-        super(PlotWidget, self).__init__(window_config, widget_config)
+    def __init__(self, *args):
+        super(PlotWidget, self).__init__(*args)
 
         self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1)
         dpg.add_plot_legend(parent=self.plot)
