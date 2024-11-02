@@ -28,6 +28,7 @@ class App(BasePlugin):
     ]
 
     def __init__(self):
+        dpg.configure_app(docking=True, docking_space=True)
         with dpg.menu(parent='menubar', label='App'):
             dpg.add_menu_item(label='Open an app file', callback=self.open_file_dialog)
             dpg.add_menu_item(label='Save', callback=lambda: self._save())
