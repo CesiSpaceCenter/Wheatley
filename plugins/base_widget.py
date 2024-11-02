@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
 from plugins.base_plugin import BasePlugin
+from uuid import uuid4
 
 
 class BaseWidget(BasePlugin):
@@ -17,13 +18,18 @@ class BaseWidget(BasePlugin):
     }
     window: int
 
-    def __init__(self, window_config=None, widget_config=None):
+    ready = False
+
+    def __init__(self, window_config=None, widget_config=None, window_tag=None):
         if window_config is None:
             self._window_config = {**self._window_config, **self.default_window_config}
         else:
             self._window_config = {**self._window_config, **window_config}
 
-        self.window = dpg.add_window(**self._window_config, user_data=self)
+        if window_tag is None:
+            window_tag = uuid4().hex
+
+        self.window = dpg.add_window(**self._window_config, user_data=self, tag=window_tag)
 
         if widget_config is None:
             self.config = self.default_config

@@ -1,9 +1,11 @@
+import os
+
 import dearpygui.dearpygui as dpg
 import easygui
 import json
 
+import base_app
 from plugins.base_plugin import BasePlugin
-from plugins.base_widget import BaseWidget
 
 from plugins.loading import Loading
 
@@ -39,16 +41,19 @@ class App(BasePlugin):
                     widget_type = dpg.get_value(new_widget_type)
                     for widget in self.widgets:
                         if widget[0] == widget_type:
-                            widget[1]()
+                            widget_object = widget[1]()
+                            widget_object.ready = True
                             break
                 dpg.add_button(label='Add', width=-1, callback=add_widget_callback)
 
+        if 'APP_FILE' in os.environ:
+            self._load(os.environ['APP_FILE'])
+
     def open_file_dialog(self):
-        Loading.plugin.open()
         path = easygui.fileopenbox(filetypes=['*.json'])
         if path is not None and path != '':
-            self._load(path)
-        Loading.plugin.close()
+            os.environ['APP_FILE'] = path
+            base_app.should_restart = True
 
     def save_file_dialog(self):
         Loading.plugin.open()
@@ -59,12 +64,15 @@ class App(BasePlugin):
 
     def _load(self, path: str):
         self.current_file = path
+
+        dpg.configure_app(docking=True, docking_space=True, init_file=path+'.ini')
         with open(path, 'r') as f:
             data = json.loads(f.read())
             for widget_data in data['widgets']:
                 for widget in self.widgets:
                     if widget[0] == widget_data['widget']:
-                        widget[1](widget_data['window'], widget_data['config'])
+                        widget_object = widget[1](None, widget_data['config'], widget_data['window_tag'])
+                        widget_object.ready = True
                         break
 
     def _save(self, path: str = None):
@@ -81,7 +89,9 @@ class App(BasePlugin):
                     if w[1] == type(widget):
                         widget_type = w[0]
                         break
+
                 data['widgets'].append({
+                    'window_tag': widget.window,
                     'widget': widget_type,
                     'config': widget.config,
                     'window': widget.window_config
@@ -89,9 +99,10 @@ class App(BasePlugin):
         with open(path, 'w') as f:
             f.write(json.dumps(data, indent=2))
 
+        dpg.save_init_file(path + '.ini')
 
     def render(self):
         for window in dpg.get_all_items():
             widget = get_widget(window)
-            if widget and hasattr(widget, 'render'):
+            if widget and widget.ready:
                 widget.render()
