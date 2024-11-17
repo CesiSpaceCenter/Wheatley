@@ -1,3 +1,4 @@
 from base_app import start_app
 
-start_app()
+if __name__ == '__main__':
+    start_app()

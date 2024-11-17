@@ -1,5 +1,6 @@
 from plugins.base_plugin import BasePlugin
-import time, math
+import time
+import math
 
 
 class DataStore(BasePlugin):
@@ -19,9 +20,11 @@ class DataStore(BasePlugin):
     data = {}
 
     def __init__(self):
+        # initializes data arrays for each data points
         for data_point in self.dictionary.keys():
             self.data[data_point] = []
 
     def render(self):
+        # add random data for each datapoints
         self.data['t'].append(time.monotonic())
         self.data['accx'].append(math.sin(time.monotonic()))

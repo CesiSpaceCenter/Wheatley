@@ -10,26 +10,37 @@ class WidgetConfig(BasePlugin):
     def __init__(self):
         self.window = dpg.add_window(label='Widget config', width=300, height=600)
         self.active_widget: BaseWidget = None
+        # the next 2 dict will store the temporary new config. they are updated in real-time with the inputs
         self.new_widget_config: dict = None
         self.new_window_config: dict = None
-        self.inputs_group = dpg.add_group(parent=self.window)
-        dpg.add_button(parent=self.window, label='Save', callback=self._save_config)
+        self.inputs_group = dpg.add_group(parent=self.window)  # group where all the dynamic inputs will be
+        dpg.add_button(parent=self.window, label='Save', callback=self.save_config)
 
-    def _render_config_window(self):
-        self._clear_inputs()
+    def render_config_window(self):
+        """ Re-create inputs depending on the selected widget's config """
+        dpg.delete_item(self.inputs_group, children_only=True)  # remove all existing inputs
 
+        def update_window_config(_, config_value: any, config_name: str):  # callback for when a window config input is updated
+            self.new_window_config[config_name] = config_value
+
+        # create inputs for the widget's window config
         dpg.add_separator(parent=self.inputs_group, label='Window config')
         for name, value in self.active_widget.window_config.items():
-            self._get_input(name, value, self._update_window_config)
+            self.get_input(name, value, update_window_config)
 
+        def update_widget_config(_, config_value: any, config_name: str):  # callback for when a widget config input is updated
+            self.new_widget_config[config_name] = config_value
+
+        # create inputs for the widget config
         dpg.add_separator(parent=self.inputs_group, label='Widget config')
         for name, value in self.active_widget.config.items():
-            self._get_input(name, value, self._update_widget_config)
+            self.get_input(name, value, update_widget_config)
 
         dpg.add_separator(parent=self.inputs_group)
 
-    def _get_input(self, name: str, value: any, callback: callable):
-        item_config = dict(
+    def get_input(self, name: str, value: any, callback: callable):
+        """ creates an input depending on the value's type """
+        item_config = dict(  # common config for all inputs
             parent=self.inputs_group,
             label=name,
             default_value=value,
@@ -46,40 +57,35 @@ class WidgetConfig(BasePlugin):
             case 'float':
                 dpg.add_input_float(**item_config)
 
-    def _update_widget_config(self, _, config_value: any, config_name: str):
-        self.new_widget_config[config_name] = config_value
-
-    def _update_window_config(self, _, config_value: any, config_name: str):
-        self.new_window_config[config_name] = config_value
-
-    def _save_config(self):
+    def save_config(self):
+        """ destroy and re-create the selected widget with the new config """
         if self.active_widget is not None:
             old_widget_config = self.active_widget.config.copy()
             old_window_config = self.active_widget.window_config.copy()
-            window_tag = self.active_widget.window
-            new_widget = type(self.active_widget)(
-                {**old_window_config, **self.new_window_config},
+            window_tag = self.active_widget.window  # keep the same window tag
+            new_widget = type(self.active_widget)(  # create a new widget
+                {**old_window_config, **self.new_window_config},  # merge old config with the new config
                 {**old_widget_config, **self.new_widget_config},
                 window_tag
             )
-            new_widget.ready = True
-
-
-    def _clear_inputs(self):
-        for item in dpg.get_item_children(self.inputs_group, 1):
-            dpg.delete_item(item)
+            new_widget.ready = True  # set widget ready only after __init__ is done
 
     def render(self):
+        # udate the active widget
         active_window = dpg.get_active_window()
-        if active_window == self.window:
+        if active_window == self.window:  # abort if the selected window is the widget config window
             return
-        if active_window > 10 and get_widget(active_window):
-            widget = dpg.get_item_user_data(active_window)
-            if self.active_widget != widget:
-                self.new_widget_config = {}
-                self.new_window_config = {}
-                self.active_widget = widget
-                self._render_config_window()
-        elif self.active_widget is not None:
+
+        widget = get_widget(active_window)
+        if widget:  # selected window is a widget
+            if self.active_widget == widget:  # abort if the selected widget has not changed
+                return
+            # different widget selected
+            self.new_widget_config = {}
+            self.new_window_config = {}
+            self.active_widget = widget
+            self.render_config_window()
+
+        if not widget and self.active_widget is not None:  # selected window is not a widget
             self.active_widget = None
-            self._clear_inputs()
+            dpg.delete_item(self.inputs_group, children_only=True)
