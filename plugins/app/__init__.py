@@ -1,8 +1,10 @@
 import os
+import json
+import tempfile
 
 import dearpygui.dearpygui as dpg
 import easygui
-import json
+import zipfile
 
 import base_app
 from plugins.base_plugin import BasePlugin
@@ -49,16 +51,17 @@ class App(BasePlugin):
     @staticmethod
     def open_file_dialog():
         """ Opens a dialog to open and load an app file """
-        path = easygui.fileopenbox(filetypes=['*.json'])  # TODO: replace easygui, sometimes crashes
+        path = easygui.fileopenbox(filetypes=['*.wsav'])  # TODO: replace easygui, sometimes crashes
         if path is not None and path != '':
             # we have to restart the whole app, since dearpygui's init files only load on viewport creation
             os.environ['APP_FILE'] = path
-            base_app.should_restart = True
+            dpg.stop_dearpygui()
+            base_app.should_run = True
 
     def save_file_dialog(self):
         """ Opens a dialog to save the current layout & config """
         Loading.plugin.open()
-        path = easygui.filesavebox(filetypes=['*.json'])
+        path = easygui.filesavebox(filetypes=['*.wsav'])
         if path is not None and path != '':
             self.save(path)
         Loading.plugin.close()
@@ -67,26 +70,36 @@ class App(BasePlugin):
         """ Loads an app file, creating its widgets and configuration """
         self.current_file = path
 
-        # load dearpygui's init file for the layout
-        dpg.configure_app(docking=True, docking_space=True, init_file=path+'.ini')
-        with open(path, 'r') as f:  # open the widgets file
-            data = json.loads(f.read())
+        with zipfile.ZipFile(path, 'r') as save_file:
+            # extract dpg's init file into a temporary file
+            # TODO: find a way to delete this file,
+            # right now if it is deleted, dpg can't load it (race condition? configure_app is async?)
+            layout_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
+            layout = save_file.read('layout.ini').decode()
+            layout_file.write(layout)
+
+            # load load the tempfile into dpg
+            dpg.configure_app(docking=True, docking_space=True, init_file=layout_file.name)
+
+            data = json.loads(save_file.read('config.json'))
             for widget_data in data['widgets']:  # for every widget in the widgets file
                 for widget in self.widgets:  # find the corresponding widget
                     if widget[0] == widget_data['widget']:  # corresponding name
-                        # create the widget object from its class, with the widget&window config and the window tag.
+                        # create the widget object from its class, with the widget&window config and the window tag
                         widget_object: BaseWidget = widget[1](widget_data['window'], widget_data['config'], widget_data['window_tag'])
                         widget_object.ready = True  # only after __init__ is done, set the widget as ready
                         break
 
+            layout_file.close()
+
     def save(self, path: str = None):
         """ Saves an app file, with its widgets and configuration """
-        # show the dialog if there is no path argument, and there is no opened app file to overwrite
-        if path is None:
+        if not isinstance(path, str):  # path is not str when we click "save"
             if self.current_file is None:
                 self.save_file_dialog()
                 return
             path = self.current_file
+
         data = {  # save file content
             'widgets': []
         }
@@ -108,12 +121,14 @@ class App(BasePlugin):
                     'config': widget.config,
                     'window': widget.window_config
                 })
-        # save the save file
-        with open(path, 'w') as f:
-            f.write(json.dumps(data, indent=2))
 
-        # save the init file
-        dpg.save_init_file(path + '.ini')
+        with zipfile.ZipFile(path, 'w') as save_file:
+            # save the config file into the zip
+            save_file.writestr('config.json', json.dumps(data, indent=2))
+
+            with tempfile.NamedTemporaryFile() as layout_file:  # open a temporary file
+                dpg.save_init_file(layout_file.name)  # save dpg's init file into the temp file
+                save_file.writestr('layout.ini', layout_file.read())  # read the tempfile and put its content into the zip
 
     def render(self):
         # call the render method for all widgets
