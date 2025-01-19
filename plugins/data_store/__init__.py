@@ -3,6 +3,10 @@ import time
 import math
 
 
+class DataPoint(str):  # used by widget_config to indentify a data point
+    pass
+
+
 class DataStore(BasePlugin):
     dictionary = {
         'accx': {

@@ -1,13 +1,12 @@
 import dearpygui.dearpygui as dpg
 
 from plugins.base_widget import BaseWidget
-from plugins.data_store import DataStore
-from plugins.fonts import Fonts
+from plugins.data_store import DataStore, DataPoint
 
 
 class NumericBarWidget(BaseWidget):
     default_config = {
-        'data_point': 'accx',
+        'data_point': DataPoint('accx'),
         'custom_label': False,
         'custom_label_value': '',
         'round': 2,

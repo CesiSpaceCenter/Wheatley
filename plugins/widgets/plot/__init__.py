@@ -1,12 +1,12 @@
 import dearpygui.dearpygui as dpg
 from plugins.base_widget import BaseWidget
-from plugins.data_store import DataStore
+from plugins.data_store import DataStore, DataPoint
 
 
 class PlotWidget(BaseWidget):
     default_config = {
         'data_points': ['accx'],
-        'data_point_x': 't'
+        'data_point_x': DataPoint('t')
     }
 
     default_window_config = {

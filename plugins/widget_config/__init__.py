@@ -1,8 +1,7 @@
-import json
-
 import dearpygui.dearpygui as dpg
 from plugins.base_plugin import BasePlugin
 from plugins.base_widget import BaseWidget
+from plugins.data_store import DataStore, DataPoint
 from utils import get_widget
 
 
@@ -21,7 +20,8 @@ class WidgetConfig(BasePlugin):
         dpg.delete_item(self.inputs_group, children_only=True)  # remove all existing inputs
 
         def update_window_config(_, config_value: any, config_name: str):  # callback for when a window config input is updated
-            self.new_window_config[config_name] = config_value
+            config_type = type(self.active_widget.window_config[config_name])
+            self.new_window_config[config_name] = config_type(config_value)
 
         # create inputs for the widget's window config
         dpg.add_separator(parent=self.inputs_group, label='Window config')
@@ -29,7 +29,8 @@ class WidgetConfig(BasePlugin):
             self.get_input(name, value, update_window_config)
 
         def update_widget_config(_, config_value: any, config_name: str):  # callback for when a widget config input is updated
-            self.new_widget_config[config_name] = config_value
+            config_type = type(self.active_widget.config[config_name])
+            self.new_widget_config[config_name] = config_type(config_value)
 
         # create inputs for the widget config
         dpg.add_separator(parent=self.inputs_group, label='Widget config')
@@ -56,6 +57,8 @@ class WidgetConfig(BasePlugin):
                 dpg.add_input_int(**item_config)
             case 'float':
                 dpg.add_input_float(**item_config)
+            case 'DataPoint':
+                dpg.add_combo([DataPoint(d) for d in DataStore.plugin.dictionary.keys()], **item_config)
 
     def save_config(self):
         """ destroy and re-create the selected widget with the new config """
