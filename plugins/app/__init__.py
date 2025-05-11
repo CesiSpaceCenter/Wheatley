@@ -51,7 +51,7 @@ class App(BasePlugin):
     @staticmethod
     def open_file_dialog():
         """ Opens a dialog to open and load an app file """
-        path = easygui.fileopenbox(filetypes=['*.wsav'])  # TODO: replace easygui, sometimes crashes
+        path = filedialpy.openFile()
         if path is not None and path != '':
             # we have to restart the whole app, since dearpygui's init files only load on viewport creation
             os.environ['APP_FILE'] = path
@@ -61,7 +61,7 @@ class App(BasePlugin):
     def save_file_dialog(self):
         """ Opens a dialog to save the current layout & config """
         Loading.plugin.open()
-        path = easygui.filesavebox(filetypes=['*.wsav'])
+        path = filedialpy.saveFile()
         if path is not None and path != '':
             self.save(path)
         Loading.plugin.close()
