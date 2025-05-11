@@ -26,16 +26,10 @@ class BaseWidget(BasePlugin):
             # combine the base window config with this widget's instance window config
             self.window_config = {**self.window_config, **window_config}
 
-        if window_tag is None:  # no custom tag for the window
-            # using uuid instead of dpg's incremental id,
-            # because when loading an app file & init layout file, some of the windows id were already taken
-            # no risk of that with uuids
-            window_tag = uuid4().hex  # create a new uuid as the window tag
-        self.window = window_tag
-
         # in case we want to create a widget with an existing window
         # don't recreate the window, only reconfigure it, and delete all of its childrens
-        if dpg.does_item_exist(self.window):
+        if window_tag is not None and dpg.does_item_exist(window_tag):
+            self.window = window_tag
             # https://github.com/hoffstadt/DearPyGui/issues/1625
             # don't reconfigure label if it hasn't changed, otherwise it will break the docking
             window_config = self.window_config.copy()
@@ -44,7 +38,10 @@ class BaseWidget(BasePlugin):
             dpg.configure_item(self.window, **window_config, user_data=self)  # user_data is the widget instance object
             dpg.delete_item(self.window, children_only=True)
         else:  # new window
-            self.window = dpg.add_window(**self.window_config, user_data=self)  # user_data is the widget instance object
+            # generate a random unique (enough) window tag
+            # we need to use an integer for the window tag, because dpg's init file only works this way
+            window_tag = int(str(uuid4().int)[:8])
+            self.window = dpg.add_window(**self.window_config, user_data=self, tag=window_tag)  # user_data is the widget instance object
 
         if widget_config is None:  # no custom config for this widget instance
             self.config = self.default_config  # use the widget default config

@@ -3,7 +3,7 @@ import json
 import tempfile
 
 import dearpygui.dearpygui as dpg
-import easygui
+import filedialpy
 import zipfile
 
 import base_app
@@ -77,11 +77,18 @@ class App(BasePlugin):
             layout_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
             layout = save_file.read('layout.ini').decode()
             layout_file.write(layout)
+            layout_file.flush()
 
             # load load the tempfile into dpg
             dpg.configure_app(docking=True, docking_space=True, init_file=layout_file.name)
 
             data = json.loads(save_file.read('config.json'))
+
+            # first create all the widget windows
+            for widget_data in data['widgets']:  # for every widget in the widgets file
+                dpg.add_window(tag=widget_data['window_tag'])
+
+            # then initialize the widgets
             for widget_data in data['widgets']:  # for every widget in the widgets file
                 for widget in self.widgets:  # find the corresponding widget
                     if widget[0] == widget_data['widget']:  # corresponding name
@@ -90,7 +97,7 @@ class App(BasePlugin):
                         widget_object.ready = True  # only after __init__ is done, set the widget as ready
                         break
 
-            layout_file.close()
+            #layout_file.close()
 
     def save(self, path: str = None):
         """ Saves an app file, with its widgets and configuration """
