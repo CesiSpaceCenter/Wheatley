@@ -1,12 +1,13 @@
 import dearpygui.dearpygui as dpg
 from plugins.base_widget import BaseWidget
-from plugins.data_store import DataStore, DataPoint
+from plugins.data_store import DataStore
+from plugins.widget_config import DataPoint, DataPointArray
 
 
 class PlotWidget(BaseWidget):
     default_config = {
-        'data_points': ['accx'],
-        'data_point_x': DataPoint('t')
+        'data_point_x': DataPoint('t'),
+        'data_point_y': DataPointArray([])
     }
 
     default_window_config = {
@@ -18,13 +19,14 @@ class PlotWidget(BaseWidget):
         self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1)
         dpg.add_plot_legend(parent=self.plot)
 
+        print('data_point_y for plot', self.config['data_point_y'])
         # horizontal axis
         self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot, label=self.config['data_point_x'])
 
         self.series = {}  # dict that will store every dpg's Series
         self.y_axis = {}  # dict that will store every dpg's YAxis
 
-        for data_point_id in self.config['data_points']:
+        for data_point_id in self.config['data_point_y']:
             data_point = DataStore.plugin.dictionary[data_point_id]  # get the datapoint config from the datastore
 
             # every y axis represent an unit

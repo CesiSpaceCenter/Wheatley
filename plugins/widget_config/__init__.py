@@ -1,9 +1,14 @@
 import dearpygui.dearpygui as dpg
 from plugins.base_plugin import BasePlugin
 from plugins.base_widget import BaseWidget
-from plugins.data_store import DataStore, DataPoint
+from plugins.data_store import DataStore
 from utils import get_widget
 
+class DataPoint(str):
+    pass
+
+class DataPointArray(list):
+    pass
 
 class WidgetConfig(BasePlugin):
     def __init__(self):
@@ -60,6 +65,40 @@ class WidgetConfig(BasePlugin):
                 dpg.add_input_float(**item_config)
             case 'DataPoint':
                 dpg.add_combo([DataPoint(d) for d in DataStore.plugin.dictionary.keys()], **item_config)
+            case 'DataPointArray':
+                datapoints_inputs_group = dpg.add_group(parent=self.inputs_group)
+
+                # the real callback needs to receive the new list of datapoints
+                # so we make this intermediate callback, that adds the newly selected datapoint to the list and call the original callback
+
+                def delete_datapoint_callback(item, _, datapoint):
+                    value.remove(datapoint)
+                    callback(None, value, name)
+                    # delete the datapoint label + delete button
+                    dpg.delete_item(dpg.get_item_parent(item))
+
+                def add_datapoint_callback(_, datapoint):
+                    if datapoint not in value:
+                        value.append(datapoint)
+                        callback(None, value, name)
+                        # add the datapoint label + delete button
+                        with dpg.group(parent=datapoints_inputs_group, horizontal=True):
+                            dpg.add_text(datapoint)
+                            dpg.add_button(label='-', callback=delete_datapoint_callback, user_data=datapoint)
+
+                for datapoint in value:
+                    with dpg.group(parent=datapoints_inputs_group, horizontal=True):
+                        dpg.add_text(datapoint)
+                        dpg.add_button(label='-', callback=delete_datapoint_callback, user_data=datapoint)
+
+                dpg.add_combo(
+                    [DataPoint(d) for d in DataStore.plugin.dictionary.keys()],
+                    parent=self.inputs_group,
+                    label=name,
+                    callback=add_datapoint_callback,
+                    before=datapoints_inputs_group
+                )
+
 
     def save_config(self):
         """ destroy and re-create the selected widget with the new config """

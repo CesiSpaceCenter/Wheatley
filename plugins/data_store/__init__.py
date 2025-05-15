@@ -3,14 +3,15 @@ import time
 import math
 
 
-class DataPoint(str):  # used by widget_config to indentify a data point
-    pass
-
-
 class DataStore(BasePlugin):
     dictionary = {
         'accx': {
             'name': 'Accélération X',
+            'type': float,
+            'unit': 'm/s²'
+        },
+        'accy': {
+            'name': 'Accélération Y',
             'type': float,
             'unit': 'm/s²'
         },
@@ -32,3 +33,4 @@ class DataStore(BasePlugin):
         # add random data for each datapoints
         self.data['t'].append(time.monotonic())
         self.data['accx'].append(math.sin(time.monotonic()))
+        self.data['accy'].append(math.cos(time.monotonic()))

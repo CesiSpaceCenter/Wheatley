@@ -1,7 +1,8 @@
 import dearpygui.dearpygui as dpg
 
 from plugins.base_widget import BaseWidget
-from plugins.data_store import DataStore, DataPoint
+from plugins.data_store import DataStore
+from plugins.widget_config import DataPoint
 
 
 class NumericBarWidget(BaseWidget):
