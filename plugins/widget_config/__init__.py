@@ -13,7 +13,6 @@ class WidgetConfig(BasePlugin):
         self.new_widget_config: dict = None
         self.new_window_config: dict = None
         self.inputs_group = dpg.add_group(parent=self.window)  # group where all the dynamic inputs will be
-        dpg.add_button(parent=self.window, label='Save', callback=self.save_config)
 
     def render_config_window(self):
         """ Re-create inputs depending on the selected widget's config """
@@ -38,6 +37,8 @@ class WidgetConfig(BasePlugin):
             self.get_input(name, value, update_widget_config)
 
         dpg.add_separator(parent=self.inputs_group)
+
+        dpg.add_button(parent=self.inputs_group, label='Save', callback=self.save_config, width=-1)
 
     def get_input(self, name: str, value: any, callback: callable):
         """ creates an input depending on the value's type """
