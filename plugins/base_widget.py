@@ -4,6 +4,7 @@ from uuid import uuid4
 
 
 class BaseWidget(BasePlugin):
+    name: str  # user-friendly name
     default_config: dict  # widget default configuration
     config: dict  # widget current configuration
     default_window_config: dict  # widget's window default configuration

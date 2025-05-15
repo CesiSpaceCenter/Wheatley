@@ -5,6 +5,8 @@ from plugins.widget_config import DataPoint, DataPointArray
 
 
 class PlotWidget(BaseWidget):
+    name = 'Plot'
+
     default_config = {
         'data_point_x': DataPoint('t'),
         'data_point_y': DataPointArray([])

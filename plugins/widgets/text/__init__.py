@@ -3,6 +3,8 @@ from plugins.base_widget import BaseWidget
 
 
 class TextWidget(BaseWidget):
+    name = 'Text'
+
     default_config = {
         'text': '',
         'bullet': False

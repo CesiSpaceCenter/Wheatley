@@ -26,10 +26,10 @@ from utils import get_widget
 class App(BasePlugin):
     current_file = None
     widgets = [
-        ('text', TextWidget),
-        ('plot', PlotWidget),
-        ('numeric bar', NumericBarWidget),
-        ('numeric', NumericWidget)
+        TextWidget,
+        PlotWidget,
+        NumericBarWidget,
+        NumericWidget
     ]
 
     def __init__(self):
@@ -43,7 +43,7 @@ class App(BasePlugin):
                     widget_object = widget()
                     widget_object.ready = True  # set ready only after __init__ is done
                 for widget in self.widgets:  # add a menu item for each widget
-                    dpg.add_menu_item(label=widget[0], callback=add_widget_callback, user_data=widget[1])
+                    dpg.add_menu_item(label=widget.name, callback=add_widget_callback, user_data=widget)
 
         if 'APP_FILE' in os.environ:  # open app file if there is one in the env var
             self.load(os.environ['APP_FILE'])
@@ -91,9 +91,9 @@ class App(BasePlugin):
             # then initialize the widgets
             for widget_data in data['widgets']:  # for every widget in the widgets file
                 for widget in self.widgets:  # find the corresponding widget
-                    if widget[0] == widget_data['widget']:  # corresponding name
+                    if widget.__name__ == widget_data['widget']:  # corresponding name
                         # create the widget object from its class, with the widget&window config and the window tag
-                        widget_object: BaseWidget = widget[1](widget_data['window'], widget_data['config'], widget_data['window_tag'])
+                        widget_object: BaseWidget = widget(widget_data['window'], widget_data['config'], widget_data['window_tag'])
                         widget_object.ready = True  # only after __init__ is done, set the widget as ready
                         break
 
@@ -114,20 +114,17 @@ class App(BasePlugin):
         for item in dpg.get_all_items():
             widget = get_widget(item)
             if widget:
-                widget_type = None
-                # find the widget type name
+                # find the widget type
                 for w in self.widgets:
-                    if w[1] == type(widget):
-                        widget_type = w[0]
+                    if w == type(widget):
+                        # add the widget to the config
+                        data['widgets'].append({
+                            'window_tag': widget.window,
+                            'widget': w.__name__,
+                            'config': widget.config,
+                            'window': widget.window_config
+                        })
                         break
-
-                # add the widget to the config
-                data['widgets'].append({
-                    'window_tag': widget.window,
-                    'widget': widget_type,
-                    'config': widget.config,
-                    'window': widget.window_config
-                })
 
         with zipfile.ZipFile(path, 'w') as save_file:
             # save the config file into the zip

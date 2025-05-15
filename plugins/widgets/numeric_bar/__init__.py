@@ -6,6 +6,8 @@ from plugins.widget_config import DataPoint
 
 
 class NumericBarWidget(BaseWidget):
+    name = 'Numeric bar'
+
     default_config = {
         'data_point': DataPoint('accx'),
         'custom_label': False,
