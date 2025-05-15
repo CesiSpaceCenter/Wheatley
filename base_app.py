@@ -23,7 +23,8 @@ def run():
         app,
         loading,
         widget_config,
-        data_store
+        data_store,
+        windows_menu
     )
     # initialize plugin manager
     import plugins
@@ -36,6 +37,7 @@ def run():
         data_store.DataStore,
         widget_config.WidgetConfig,
         app.App,
+        windows_menu.WindowsMenu
     ])
 
     # setup the main viewport & dpg
