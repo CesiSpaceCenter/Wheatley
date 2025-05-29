@@ -5,27 +5,38 @@ from uuid import uuid4
 
 class BaseWidget(BasePlugin):
     name: str  # user-friendly name
-    default_config: dict  # widget default configuration
-    config: dict  # widget current configuration
-    default_window_config: dict  # widget's window default configuration
-    window_config = {  # widget's window current configuration (dpg.window keyword arguments
-        'label': 'Widget',
-        'no_scrollbar': False,
-        'no_scroll_with_mouse': False
-    }
+
+    config_definition: dict[str, tuple[type, any]] = {}  # widget default configuration & configuration types
+    config: dict[str, any] = {}  # widget current configuration
+
+    window_config_definition: dict[str, tuple[type, any]] = {}  # widget's window default configuration & configuration types
+    window_config: dict[str, any] = {}  # widget's window current configuration (dpg.window keyword arguments)
+
     window: int  # widget's window tag
 
     # safeguard, because dpg is multithreaded, and the main loop might run before __init__ is done
     # the render() function will not run unless this is true
     ready = False
 
-    def __init__(self, window_config=None, widget_config=None, window_tag=None):
-        if window_config is None:  # if no custom window config has been set for this widget instance
-            # combine the base window config with the widget's default window config
-            self.window_config = {**self.window_config, **self.default_window_config}
-        else:  # a custom window config is present for this widget instance
-            # combine the base window config with this widget's instance window config
-            self.window_config = {**self.window_config, **window_config}
+    def __init__(self, window_config : dict[str, any] = None, widget_config : dict[str, any] = None, window_tag : int = None):
+        # add some window config for all widget
+        self.window_config_definition['label'] = (str, '')
+        self.window_config_definition['no_scrollbar'] = (bool, False)
+        self.window_config_definition['no_scroll_with_mouse'] = (bool, False)
+
+        # create the final window config & widget config from the user-defined config & the default config
+
+        for k, v in self.window_config_definition.items():
+            if window_config is not None and k in window_config:  # this config key has been defined in the config
+                self.window_config[k] = window_config[k]
+            else:
+                self.window_config[k] = v[1]  # use the default value for this config key
+
+        for k, v in self.config_definition.items():
+            if widget_config is not None and k in widget_config:  # this config key has been defined in the config
+                self.config[k] = widget_config[k]
+            else:
+                self.config[k] = v[1]  # use the default value for this config key
 
         # in case we want to create a widget with an existing window
         # don't recreate the window, only reconfigure it, and delete all of its childrens
@@ -43,11 +54,6 @@ class BaseWidget(BasePlugin):
             # we need to use an integer for the window tag, because dpg's init file only works this way
             window_tag = int(str(uuid4().int)[:8])
             self.window = dpg.add_window(**self.window_config, user_data=self, tag=window_tag)  # user_data is the widget instance object
-
-        if widget_config is None:  # no custom config for this widget instance
-            self.config = self.default_config  # use the widget default config
-        else:
-            self.config = widget_config
 
     def render(self):
         """ Widget main loop, code to be run at every render loop """

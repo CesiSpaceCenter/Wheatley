@@ -7,12 +7,9 @@ from plugins.widget_config import DataPoint, DataPointArray
 class PlotWidget(BaseWidget):
     name = 'Plot'
 
-    default_config = {
-        'data_point_x': DataPoint('t'),
-        'data_point_y': DataPointArray([])
-    }
-
-    default_window_config = {
+    config_definition = {
+        'data_point_x': (DataPoint, 't'),
+        'data_point_y': (DataPointArray, [])
     }
 
     def __init__(self, *args):
@@ -31,7 +28,7 @@ class PlotWidget(BaseWidget):
         for data_point_id in self.config['data_point_y']:
             data_point = DataStore.plugin.dictionary[data_point_id]  # get the datapoint config from the datastore
 
-            # every y axis represent an unit
+            # every y axis represents a unit
             if data_point['unit'] not in self.y_axis:
                 # dpg limits to 3 y axis, so choose between mvYAxis, mvYAxis2, mvYAxis3
                 if len(self.y_axis) > 2:

@@ -5,12 +5,9 @@ from plugins.base_widget import BaseWidget
 class TextWidget(BaseWidget):
     name = 'Text'
 
-    default_config = {
-        'text': '',
-        'bullet': False
-    }
-
-    default_window_config = {
+    config_definition = {
+        'text': (str, ''),
+        'bullet': (bool, False)
     }
 
     def __init__(self, *args):

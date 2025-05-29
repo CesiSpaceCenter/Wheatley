@@ -24,28 +24,28 @@ class WidgetConfig(BasePlugin):
         dpg.delete_item(self.inputs_group, children_only=True)  # remove all existing inputs
 
         def update_window_config(_, config_value: any, config_name: str):  # callback for when a window config input is updated
-            config_type = type(self.active_widget.window_config[config_name])
+            config_type = self.active_widget.window_config_definition[config_name][0]
             self.new_window_config[config_name] = config_type(config_value)
 
         # create inputs for the widget's window config
         dpg.add_separator(parent=self.inputs_group, label='Window config')
         for name, value in self.active_widget.window_config.items():
-            self.get_input(name, value, update_window_config)
+            self.get_input(name, value, self.active_widget.window_config_definition, update_window_config)
 
         def update_widget_config(_, config_value: any, config_name: str):  # callback for when a widget config input is updated
-            config_type = type(self.active_widget.config[config_name])
+            config_type = self.active_widget.config_definition[config_name][0]
             self.new_widget_config[config_name] = config_type(config_value)
 
         # create inputs for the widget config
         dpg.add_separator(parent=self.inputs_group, label='Widget config')
         for name, value in self.active_widget.config.items():
-            self.get_input(name, value, update_widget_config)
+            self.get_input(name, value, self.active_widget.config_definition, update_widget_config)
 
         dpg.add_separator(parent=self.inputs_group)
 
         dpg.add_button(parent=self.inputs_group, label='Save', callback=self.save_config, width=-1)
 
-    def get_input(self, name: str, value: any, callback: callable):
+    def get_input(self, name: str, value: any, config_definition: dict[str, tuple[object, any]], callback: callable):
         """ creates an input depending on the value's type """
         item_config = dict(  # common config for all inputs
             parent=self.inputs_group,
@@ -54,7 +54,8 @@ class WidgetConfig(BasePlugin):
             callback=callback,
             user_data=name
         )
-        match type(value).__name__:
+        print(config_definition[name])
+        match config_definition[name][0].__name__:  # depending on the type of this config ite
             case 'str':
                 dpg.add_input_text(**item_config)
             case 'bool':
@@ -66,39 +67,16 @@ class WidgetConfig(BasePlugin):
             case 'DataPoint':
                 dpg.add_combo([DataPoint(d) for d in DataStore.plugin.dictionary.keys()], **item_config)
             case 'DataPointArray':
-                datapoints_inputs_group = dpg.add_group(parent=self.inputs_group)
-
-                # the real callback needs to receive the new list of datapoints
-                # so we make this intermediate callback, that adds the newly selected datapoint to the list and call the original callback
-
-                def delete_datapoint_callback(item, _, datapoint):
-                    value.remove(datapoint)
-                    callback(None, value, name)
-                    # delete the datapoint label + delete button
-                    dpg.delete_item(dpg.get_item_parent(item))
-
-                def add_datapoint_callback(_, datapoint):
-                    if datapoint not in value:
+                def datapoint_callback(_, add, datapoint):
+                    if add:
                         value.append(datapoint)
-                        callback(None, value, name)
-                        # add the datapoint label + delete button
-                        with dpg.group(parent=datapoints_inputs_group, horizontal=True):
-                            dpg.add_text(datapoint)
-                            dpg.add_button(label='-', callback=delete_datapoint_callback, user_data=datapoint)
+                    else:
+                        value.remove(datapoint)
+                    callback(None, value, name)
 
-                for datapoint in value:
-                    with dpg.group(parent=datapoints_inputs_group, horizontal=True):
-                        dpg.add_text(datapoint)
-                        dpg.add_button(label='-', callback=delete_datapoint_callback, user_data=datapoint)
-
-                dpg.add_combo(
-                    [DataPoint(d) for d in DataStore.plugin.dictionary.keys()],
-                    parent=self.inputs_group,
-                    label=name,
-                    callback=add_datapoint_callback,
-                    before=datapoints_inputs_group
-                )
-
+                with dpg.tree_node(label=name, parent=self.inputs_group, default_open=True):
+                    for datapoint in [DataPoint(d) for d in DataStore.plugin.dictionary.keys()]:
+                        dpg.add_selectable(label=datapoint, callback=datapoint_callback, default_value=datapoint in value, user_data=datapoint)
 
     def save_config(self):
         """ destroy and re-create the selected widget with the new config """

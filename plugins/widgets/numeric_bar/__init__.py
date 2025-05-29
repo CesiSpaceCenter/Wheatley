@@ -8,16 +8,13 @@ from plugins.widget_config import DataPoint
 class NumericBarWidget(BaseWidget):
     name = 'Numeric bar'
 
-    default_config = {
-        'data_point': DataPoint('accx'),
-        'custom_label': False,
-        'custom_label_value': '',
-        'round': 2,
-        'min': 0,
-        'max': 100
-    }
-
-    default_window_config = {
+    config_definition = {
+        'data_point': (DataPoint, 'accx'),
+        'custom_label': (bool, False),
+        'custom_label_value': (str, ''),
+        'round': (int, 2),
+        'min': (int, 0),
+        'max': (int, 100)
     }
 
     def __init__(self, *args):
