@@ -24,6 +24,10 @@ class BaseWidget(BasePlugin):
         self.window_config_definition['no_scrollbar'] = (bool, False)
         self.window_config_definition['no_scroll_with_mouse'] = (bool, False)
 
+        # reset config & window config
+        self.config = {}
+        self.window_config = {}
+
         # create the final window config & widget config from the user-defined config & the default config
 
         for k, v in self.window_config_definition.items():

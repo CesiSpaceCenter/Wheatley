@@ -54,7 +54,6 @@ class WidgetConfig(BasePlugin):
             callback=callback,
             user_data=name
         )
-        print(config_definition[name])
         match config_definition[name][0].__name__:  # depending on the type of this config ite
             case 'str':
                 dpg.add_input_text(**item_config)
