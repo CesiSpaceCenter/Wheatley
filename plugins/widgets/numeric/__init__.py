@@ -32,10 +32,15 @@ class NumericWidget(BaseWidget):
             parent=self.window
         )
 
-        self.text = dpg.add_text(  # this text is the one that will have the realtime datapoint value
+        self.value_text = dpg.add_text(  # this text is the one that will have the realtime datapoint value
             parent=self.window
         )
-        dpg.bind_item_font(self.text, 'big')
+        dpg.bind_item_font(self.value_text, 'big')
+
+        self.unit_text = dpg.add_text(
+            default_value=DataStore.plugin.dictionary[self.config['data_point']].unit,
+            parent=self.window
+        )
 
     def render(self):
         data = DataStore.plugin.data[self.config['data_point']]  # get the datapoint data from the datastore
@@ -48,14 +53,18 @@ class NumericWidget(BaseWidget):
         else:
             # don't use round(), because we want to keep trailing zeros (we want 1.100, round() will give us 1.1)
             val = '{:.{}f}'.format(val, self.config['round'])
-        dpg.configure_item(self.text, default_value=val)  # change the text
+        dpg.configure_item(self.value_text, default_value=val)  # change the text
 
-        ww, wh = dpg.get_item_rect_size(self.window)  # get the window size
+        window_w, window_h = dpg.get_item_rect_size(self.window)  # get the window size
 
         label_w, label_h = dpg.get_item_rect_size(self.label)  # get the label size
-        dpg.set_item_pos(self.label, [ww//2-label_w//2, 20])  # set the label at the center top of the of the window
+        dpg.set_item_pos(self.label, [window_w//2-label_w//2, 20])  # set the label at the center top of the window
 
-        # do the same for the text
-        text_w, text_h = dpg.get_item_rect_size(self.text)
-        dpg.set_item_pos(self.text, [ww//2 - text_w//2, wh//2 - text_h//2 + label_h])
+        # do the same for the value text
+        value_w, value_h = dpg.get_item_rect_size(self.value_text)
+        dpg.set_item_pos(self.value_text, [window_w // 2 - value_w // 2, window_h // 2 - value_h // 2 + label_h])
+
+        # and finally for the unit
+        unit_w, unit_h = dpg.get_item_rect_size(self.unit_text)
+        dpg.set_item_pos(self.unit_text, [window_w//2 - unit_w//2, window_h//2 - unit_h//2 + label_h + value_h])
 
