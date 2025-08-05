@@ -25,7 +25,7 @@ class NumericWidget(BaseWidget):
         if self.config['custom_label']:
             label = self.config['custom_label_value']
         else:
-            label = data_point['name']
+            label = data_point.name
 
         self.label = dpg.add_text(
             default_value=label,

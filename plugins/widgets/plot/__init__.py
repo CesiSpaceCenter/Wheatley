@@ -29,18 +29,18 @@ class PlotWidget(BaseWidget):
             data_point = DataStore.plugin.dictionary[data_point_id]  # get the datapoint config from the datastore
 
             # every y axis represents a unit
-            if data_point['unit'] not in self.y_axis:
+            if data_point.unit not in self.y_axis:
                 # dpg limits to 3 y axis, so choose between mvYAxis, mvYAxis2, mvYAxis3
                 if len(self.y_axis) > 2:
                     raise Exception('Reached limit of 3 y axis')
                 axis = [dpg.mvYAxis, dpg.mvYAxis2, dpg.mvYAxis3][len(self.y_axis)]
                 # create the y_axis
-                self.y_axis[data_point['unit']] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=data_point['unit'])
+                self.y_axis[data_point.unit] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=data_point.unit)
 
             # create the series
             self.series[data_point_id] = dpg.add_line_series(
-                parent=self.y_axis[data_point['unit']],
-                label=data_point['name'],
+                parent=self.y_axis[data_point.unit],
+                label=data_point.name,
                 x=[],
                 y=[]
             )
