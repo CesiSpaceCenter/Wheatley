@@ -12,8 +12,7 @@ class NumericWidget(BaseWidget):
         'data_point': (DataPoint, 'accx'),
         'custom_label': (bool, False),
         'custom_label_value': (str, ''),
-        'round': (int, 2),
-        'add': (int, 0)
+        'round': (int, 2)
     }
 
     def __init__(self, *args):
