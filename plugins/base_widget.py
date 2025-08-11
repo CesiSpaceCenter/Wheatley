@@ -1,15 +1,33 @@
 import dearpygui.dearpygui as dpg
 from plugins.base_plugin import BasePlugin
 from uuid import uuid4
+from dataclasses import dataclass
+from typing import Any, get_args
 
+@dataclass
+class WidgetConfigItem:
+    type: type
+    default: Any = None
+
+class WidgetConfigGroup(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if args == ():
+            for k, v in self.default.items():
+                self[k] = v.default if v.default is not None else v.type()
+
+    default = None
+    def __class_getitem__(self, *args, **kwargs):
+        self.default = args[0]
+        return super().__class_getitem__(*args, **kwargs)
 
 class BaseWidget(BasePlugin):
     name: str  # user-friendly name
 
-    config_definition: dict[str, tuple[type, any]] = {}  # widget default configuration & configuration types
+    config_definition: dict[str, WidgetConfigItem] = {}  # widget default configuration & configuration types
     config: dict[str, any] = {}  # widget current configuration
 
-    window_config_definition: dict[str, tuple[type, any]] = {}  # widget's window default configuration & configuration types
+    window_config_definition: dict[str, WidgetConfigItem] = {}  # widget's window default configuration & configuration types
     window_config: dict[str, any] = {}  # widget's window current configuration (dpg.window keyword arguments)
 
     window: int  # widget's window tag
@@ -20,9 +38,9 @@ class BaseWidget(BasePlugin):
 
     def __init__(self, window_config : dict[str, any] = None, widget_config : dict[str, any] = None, window_tag : int = None):
         # add some window config for all widget
-        self.window_config_definition['label'] = (str, '')
-        self.window_config_definition['no_scrollbar'] = (bool, False)
-        self.window_config_definition['no_scroll_with_mouse'] = (bool, False)
+        self.window_config_definition['label'] = WidgetConfigItem(str, '')
+        self.window_config_definition['no_scrollbar'] = WidgetConfigItem(bool, False)
+        self.window_config_definition['no_scroll_with_mouse'] = WidgetConfigItem(bool, False)
 
         # reset config & window config
         self.config = {}
@@ -34,13 +52,13 @@ class BaseWidget(BasePlugin):
             if window_config is not None and k in window_config:  # this config key has been defined in the config
                 self.window_config[k] = window_config[k]
             else:
-                self.window_config[k] = v[1]  # use the default value for this config key
+                self.window_config[k] = v.default if v.default is not None else v.type()  # use the default value for this config key
 
         for k, v in self.config_definition.items():
             if widget_config is not None and k in widget_config:  # this config key has been defined in the config
                 self.config[k] = widget_config[k]
             else:
-                self.config[k] = v[1]  # use the default value for this config key
+                self.config[k] = v.default if v.default is not None else v.type()  # use the default value for this config key
 
         # in case we want to create a widget with an existing window
         # don't recreate the window, only reconfigure it, and delete all of its childrens
