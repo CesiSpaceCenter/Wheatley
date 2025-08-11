@@ -1,13 +1,13 @@
 import dearpygui.dearpygui as dpg
-from plugins.base_widget import BaseWidget
+from plugins.base_widget import BaseWidget, WidgetConfigItem
 
 
 class TextWidget(BaseWidget):
     name = 'Text'
 
     config_definition = {
-        'text': (str, ''),
-        'bullet': (bool, False)
+        'text': WidgetConfigItem(str, ''),
+        'bullet': WidgetConfigItem(bool, False)
     }
 
     def __init__(self, *args):

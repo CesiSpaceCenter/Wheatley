@@ -1,6 +1,6 @@
 import dearpygui.dearpygui as dpg
 
-from plugins.base_widget import BaseWidget
+from plugins.base_widget import BaseWidget, WidgetConfigItem
 from plugins.data_store import DataStore
 from plugins.widget_config import DataPoint
 
@@ -9,12 +9,12 @@ class NumericBarWidget(BaseWidget):
     name = 'Numeric bar'
 
     config_definition = {
-        'data_point': (DataPoint, 'accx'),
-        'custom_label': (bool, False),
-        'custom_label_value': (str, ''),
-        'round': (int, 2),
-        'min': (int, 0),
-        'max': (int, 100)
+        'data_point': WidgetConfigItem(DataPoint, 'accx'),
+        'custom_label': WidgetConfigItem(bool, False),
+        'custom_label_value': WidgetConfigItem(str, ''),
+        'round': WidgetConfigItem(int, 2),
+        'min': WidgetConfigItem(int, 0),
+        'max': WidgetConfigItem(int, 100)
     }
 
     def __init__(self, *args):

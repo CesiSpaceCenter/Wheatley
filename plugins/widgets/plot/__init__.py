@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-from plugins.base_widget import BaseWidget
+from plugins.base_widget import BaseWidget, WidgetConfigItem
 from plugins.data_store import DataStore
 from plugins.widget_config import DataPoint, DataPointArray
 
@@ -8,8 +8,8 @@ class PlotWidget(BaseWidget):
     name = 'Plot'
 
     config_definition = {
-        'data_point_x': (DataPoint, 't'),
-        'data_point_y': (DataPointArray, [])
+        'data_point_x': WidgetConfigItem(DataPoint, 't'),
+        'data_point_y': WidgetConfigItem(DataPointArray, [])
     }
 
     def __init__(self, *args):
