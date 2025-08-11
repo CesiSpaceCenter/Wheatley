@@ -67,17 +67,6 @@ class WidgetConfig(BasePlugin):
                 dpg.add_input_float(**item_config)
             case 'DataPoint':
                 dpg.add_combo([DataPoint(d) for d in DataStore.plugin.dictionary.keys()], **item_config)
-            case 'DataPointArray':
-                def datapoint_callback(_, add, datapoint):
-                    if add:
-                        value.append(datapoint)
-                    else:
-                        value.remove(datapoint)
-                    callback(None, value, name)
-
-                with dpg.tree_node(label=name, parent=item_config['parent'], default_open=True):
-                    for datapoint in [DataPoint(d) for d in DataStore.plugin.dictionary.keys()]:
-                        dpg.add_selectable(label=datapoint, callback=datapoint_callback, default_value=datapoint in value, user_data=datapoint)
             case 'list':
                 item_type = typing.get_args(_type)[0]
                 list_group = dpg.add_tree_node(label=name, parent=item_config['parent'], default_open=True)

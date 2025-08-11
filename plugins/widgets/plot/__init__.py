@@ -8,8 +8,8 @@ class PlotWidget(BaseWidget):
     name = 'Plot'
 
     config_definition = {
-        'data_point_x': WidgetConfigItem(DataPoint, 't'),
-        'data_point_y': WidgetConfigItem(DataPointArray, [])
+        'data_point_x': WidgetConfigItem(DataPoint),
+        'data_point_y': WidgetConfigItem(list[WidgetConfigItem(DataPoint)])
     }
 
     def __init__(self, *args):
@@ -48,6 +48,9 @@ class PlotWidget(BaseWidget):
     def render(self):
         # get the datapoit's data from the datastore
         data = DataStore.plugin.data
+        if self.config['data_point_x'] == '':  # ignore if no datapoint for the x axis has been configured
+            return
+
         data_x = data[self.config['data_point_x']]
         if len(data_x) == 0:  # ignore if there is no data yet
             return
