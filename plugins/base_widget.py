@@ -2,12 +2,24 @@ import dearpygui.dearpygui as dpg
 from plugins.base_plugin import BasePlugin
 from uuid import uuid4
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, get_args
 
 @dataclass
 class WidgetConfigItem:
     type: type
     default: Any = None
+
+class WidgetConfigGroup(dict):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if args == ():
+            for k, v in self.default.items():
+                self[k] = v.default if v.default is not None else v.type()
+
+    default = None
+    def __class_getitem__(self, *args, **kwargs):
+        self.default = args[0]
+        return super().__class_getitem__(*args, **kwargs)
 
 class BaseWidget(BasePlugin):
     name: str  # user-friendly name
@@ -40,13 +52,13 @@ class BaseWidget(BasePlugin):
             if window_config is not None and k in window_config:  # this config key has been defined in the config
                 self.window_config[k] = window_config[k]
             else:
-                self.window_config[k] = v.default  # use the default value for this config key
+                self.window_config[k] = v.default if v.default is not None else v.type()  # use the default value for this config key
 
         for k, v in self.config_definition.items():
             if widget_config is not None and k in widget_config:  # this config key has been defined in the config
                 self.config[k] = widget_config[k]
             else:
-                self.config[k] = v.default  # use the default value for this config key
+                self.config[k] = v.default if v.default is not None else v.type()  # use the default value for this config key
 
         # in case we want to create a widget with an existing window
         # don't recreate the window, only reconfigure it, and delete all of its childrens

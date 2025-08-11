@@ -84,21 +84,18 @@ class WidgetConfig(BasePlugin):
                 def build_ui():
                     dpg.delete_item(list_group, children_only=True)  # clear all previous elements
                     for i, item_value in enumerate(value):  # create new ones
-                        def cb(_, new_item_value, index):
-                            print('cb', name, index, new_item_value)
+                        def list_callback(_, new_item_value, index):
                             # update the value list and call the callback
                             value[int(index)] = new_item_value
                             callback(None, value, name)
                         item_group = dpg.add_group(parent=list_group, horizontal=True)
-                        self.get_input(str(i), item_value, item_type.type, cb, item_group)
+                        self.get_input(str(i), item_value, item_type.type, list_callback, item_group)
 
                         def remove_item_callback(_a, _b, index):
                             # remove the item and rebuild the ui
                             del value[index]
                             callback(None, value, name)
                             build_ui()
-
-
                         dpg.add_button(label='Remove', callback=remove_item_callback, user_data=int(i), parent=item_group)
                 build_ui()
 
@@ -107,8 +104,19 @@ class WidgetConfig(BasePlugin):
                     value.append(item_type.type())
                     callback(None, value, name)
                     build_ui()
-
                 dpg.add_button(label=f'Add to {name}', width=-1, callback=add_item_callback, parent=item_config['parent'])
+
+            case 'WidgetConfigGroup':
+                sub_items: dict[str, WidgetConfigItem] = typing.get_args(_type)[0]
+                item_group = dpg.add_tree_node(label=name, parent=item_config['parent'], default_open=True)
+                for item_name, item_type in sub_items.items():
+                    item_value = value[item_name]
+                    def list_callback(_, new_item_value, item_name):
+                        # update the value list and call the callback
+                        value[item_name] = new_item_value
+                        callback(None, value, name)
+                    self.get_input(item_name, item_value, item_type.type, list_callback, item_group)
+
 
 
     def save_config(self):
