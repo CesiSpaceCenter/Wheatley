@@ -1,7 +1,7 @@
 import dearpygui.dearpygui as dpg
 from plugins.base_widget import BaseWidget, WidgetConfigItem
 from plugins.data_store import DataStore
-from plugins.widget_config import DataPoint, DataPointArray
+from plugins.widget_config import DataPoint
 
 
 class PlotWidget(BaseWidget):

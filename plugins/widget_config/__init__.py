@@ -9,7 +9,10 @@ from utils import get_widget
 class DataPoint(str):
     pass
 
-class DataPointArray(list):
+class WidgetConfigText(str):
+    pass
+
+class long_str(str):
     pass
 
 class WidgetConfig(BasePlugin):
@@ -57,6 +60,10 @@ class WidgetConfig(BasePlugin):
             user_data=name
         )
         match _type.__name__:  # depending on the type of this config item
+            case 'WidgetConfigText':
+                dpg.add_text(name, parent=item_config['parent'])
+            case 'long_str':
+                dpg.add_input_text(**item_config, multiline=True)
             case 'str':
                 dpg.add_input_text(**item_config)
             case 'bool':
