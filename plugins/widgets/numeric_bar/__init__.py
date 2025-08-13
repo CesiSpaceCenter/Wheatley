@@ -37,7 +37,8 @@ class NumericBarWidget(BaseWidget):
             parent=self.window,
             width=-1,
             min_value=self.config['min'],
-            max_value=self.config['max']
+            max_value=self.config['max'],
+            format=f'%.{self.config["round"]}f'
         )
         dpg.bind_item_font(self.slider, 'big')
 
@@ -52,11 +53,7 @@ class NumericBarWidget(BaseWidget):
             return
         val = data[-1]  # take the last data point
 
-        if self.config['round'] <= 0:  # no decimals
-            val = int(val)
-        else:
-            val = round(val, self.config['round'])
-        dpg.set_value(self.slider, val)  # change the text
+        dpg.set_value(self.slider, round(val, self.config['round']))  # change the text
 
         window_w, window_h = dpg.get_item_rect_size(self.window)  # get the window size
 
