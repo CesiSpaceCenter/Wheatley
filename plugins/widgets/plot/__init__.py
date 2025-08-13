@@ -1,5 +1,5 @@
 import dearpygui.dearpygui as dpg
-from plugins.base_widget import BaseWidget, WidgetConfigItem
+from plugins.base_widget import BaseWidget, WidgetConfigItem, WidgetConfigGroup
 from plugins.data_store import DataStore
 from plugins.widget_config import DataPoint
 
@@ -14,6 +14,11 @@ class PlotWidget(BaseWidget):
 
     def __init__(self, *args):
         super(PlotWidget, self).__init__(*args)
+
+        with dpg.theme() as container_theme:
+            with dpg.theme_component(dpg.mvWindowAppItem):
+                dpg.add_theme_style(dpg.mvStyleVar_WindowPadding, 0)
+            dpg.bind_item_theme(self.window, container_theme)
 
         self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1)
         dpg.add_plot_legend(parent=self.plot)
@@ -35,7 +40,7 @@ class PlotWidget(BaseWidget):
                     raise Exception('Reached limit of 3 y axis')
                 axis = [dpg.mvYAxis, dpg.mvYAxis2, dpg.mvYAxis3][len(self.y_axis)]
                 # create the y_axis
-                self.y_axis[data_point.unit] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=data_point.unit)
+                self.y_axis[data_point.unit] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=data_point.unit, auto_fit=True)
 
             # create the series
             self.series[data_point_id] = dpg.add_line_series(
