@@ -88,13 +88,13 @@ class NumericWidget(BaseWidget):
         if self.config['show detail']:
             # for the avg
             avg_w, avg_h = dpg.get_item_rect_size(self.avg_text)
-            dpg.set_item_pos(self.avg_text, [window_w//2 - avg_w//2, window_h//2 - avg_h//2 + value_h + 2*unit_h])
+            dpg.set_item_pos(self.avg_text, [window_w//2 - avg_w//2, window_h - avg_h*2])
 
             # for the min
             min_w, min_h = dpg.get_item_rect_size(self.min_text)
-            dpg.set_item_pos(self.min_text, [window_w//2 - min_w//2, window_h//2 - min_h//2 + value_h + 2*unit_h + avg_h])
+            dpg.set_item_pos(self.min_text, [window_w//2 - min_w//2, window_h - avg_h*2 - min_h])
 
             # for the max
             max_w, max_h = dpg.get_item_rect_size(self.max_text)
-            dpg.set_item_pos(self.max_text, [window_w//2 - max_w//2, window_h//2 - max_h//2 + value_h + 2*unit_h + avg_h + min_h])
+            dpg.set_item_pos(self.max_text, [window_w//2 - max_w//2, window_h - avg_h*2 - min_h - max_h])
 
