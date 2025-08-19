@@ -17,6 +17,7 @@ from plugins.widgets.plot import PlotWidget
 from plugins.widgets.numeric import NumericWidget
 from plugins.widgets.numeric_bar import NumericBarWidget
 from plugins.widgets.status_table import StatusTableWidget
+from plugins.widgets.multiple_single_plots import MultipleSinglePlotsWidget
 from utils import get_widget
 
 # the "app" is the layout configuration created by the user
@@ -31,7 +32,8 @@ class App(BasePlugin):
         PlotWidget,
         NumericBarWidget,
         NumericWidget,
-        StatusTableWidget
+        StatusTableWidget,
+        MultipleSinglePlotsWidget
     ]
 
     def __init__(self):
