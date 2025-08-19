@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+import math
 from plugins.base_widget import BaseWidget, Types
 from plugins.data import Data
 
@@ -31,6 +32,8 @@ class PlotWidget(BaseWidget):
         self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot)
 
         self.series = {}  # dict that will store every dpg's Series
+        self.scatter_series = {}  # dict that will store every dpg scatter_series, only used to highlight the points near the mouse
+        self.tooltip = {}  # dict that will store every dpg tooltip that display the point coordinates near the mouse
         self.y_axis = {}  # dict that will store every dpg's YAxis
 
         # create the axis
@@ -53,7 +56,25 @@ class PlotWidget(BaseWidget):
                 x=[],
                 y=[]
             )
+            self.scatter_series[ser['y']] = dpg.add_scatter_series([], [], parent=self.y_axis[data_point.unit])
+            with dpg.custom_series([], [], channel_count=2, parent=self.y_axis[data_point.unit], callback=self.mouse_event, user_data=ser):
+                self.tooltip[ser['y']] = dpg.add_text()
         self.reload = True
+
+    last_mouse_x = 0
+    def mouse_event(self, _, mouse, ser):
+        if math.isinf(mouse[0]['MouseX_PlotSpace']):
+            return
+        px = int(mouse[0]['MouseX_PlotSpace'])
+        if px == self.last_mouse_x:
+            return
+        self.last_mouse_x = px
+        data_x = Data.plugin.data[ser['x']]
+        data_y = Data.plugin.data[ser['y']]
+        distances = [abs(px - xi) for xi in data_x]
+        closest_index = distances.index(min(distances))
+        dpg.set_value(self.tooltip[ser['y']], f'x:{round(data_x[closest_index], 2)} y:{round(data_y[closest_index], 2)}')
+        dpg.set_value(self.scatter_series[ser['y']], [[data_x[closest_index]], [data_y[closest_index]]])
 
     def render(self):
         if not Data.plugin.has_changed and not self.reload:
