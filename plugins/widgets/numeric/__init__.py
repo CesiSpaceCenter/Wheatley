@@ -1,25 +1,27 @@
 import dearpygui.dearpygui as dpg
 
-from plugins.base_widget import BaseWidget, WidgetConfigItem
-from plugins.data_store import DataStore
-from plugins.widget_config import DataPoint
+from plugins.base_widget import BaseWidget, Types
+from plugins.data import Data
 
 
 class NumericWidget(BaseWidget):
     name = 'Numeric'
 
     config_definition = {
-        'data_point': WidgetConfigItem(DataPoint, 'accx'),
-        'custom_label': WidgetConfigItem(bool, False),
-        'custom_label_value': WidgetConfigItem(str, ''),
-        'round': WidgetConfigItem(int, 2),
-        'show detail': WidgetConfigItem(bool, True)
+        'data_point': Types.DataPoint(),
+        'custom_label': Types.Bool(default=False),
+        'custom_label_value': Types.Str(),
+        'round': Types.Int(default=2),
+        'show detail': Types.Bool(default=True)
     }
 
     def __init__(self, *args):
         super(NumericWidget, self).__init__(*args)
 
-        data_point = DataStore.plugin.dictionary[self.config['data_point']]  # get the datapoint config from the datastore
+        if self.config['data_point'] == '':
+            return
+
+        data_point = Data.plugin.dictionary[self.config['data_point']]  # get the datapoint config from the datastore
 
         # create the label, with a custom value if there is one
         if self.config['custom_label']:
@@ -38,7 +40,7 @@ class NumericWidget(BaseWidget):
         dpg.bind_item_font(self.value_text, 'big')
 
         self.unit_text = dpg.add_text(
-            default_value=DataStore.plugin.dictionary[self.config['data_point']].unit,
+            default_value=Data.plugin.dictionary[self.config['data_point']].unit,
             parent=self.window
         )
 
@@ -60,9 +62,12 @@ class NumericWidget(BaseWidget):
             return '{:.{}f}'.format(value, self.config['round'])
 
     def render(self):
-        data = DataStore.plugin.data[self.config['data_point']]  # get the datapoint data from the datastore
-        if len(data) == 0:  # don't proceed if there is no data yet
+        if self.config['data_point'] == '':
             return
+
+        data = Data.plugin.data[self.config['data_point']]  # get the datapoint data from the datastore
+        if len(data) == 0:  # don't proceed if there is no data yet
+            data = [0]
 
         dpg.configure_item(self.value_text, default_value=self.round(data[-1]))  # set the text to the last data value
         if self.config['show detail']:

@@ -1,26 +1,25 @@
 import dearpygui.dearpygui as dpg
 
-from plugins.base_widget import BaseWidget, WidgetConfigItem
-from plugins.data_store import DataStore
-from plugins.widget_config import DataPoint
+from plugins.base_widget import BaseWidget, Types
+from plugins.data import Data
 
 
 class NumericBarWidget(BaseWidget):
     name = 'Numeric bar'
 
     config_definition = {
-        'data_point': WidgetConfigItem(DataPoint, 'accx'),
-        'custom_label': WidgetConfigItem(bool, False),
-        'custom_label_value': WidgetConfigItem(str, ''),
-        'round': WidgetConfigItem(int, 2),
-        'min': WidgetConfigItem(int, 0),
-        'max': WidgetConfigItem(int, 100)
+        'data_point': Types.DataPoint(),
+        'custom_label': Types.Bool(default=False),
+        'custom_label_value': Types.Str(),
+        'round': Types.Int(default=2),
+        'min': Types.Int(default=0),
+        'max': Types.Int(default=100)
     }
 
     def __init__(self, *args):
         super(NumericBarWidget, self).__init__(*args)
 
-        data_point = DataStore.plugin.dictionary[self.config['data_point']]  # get the datapoint config from the datastore
+        data_point = Data.plugin.dictionary[self.config['data_point']]  # get the datapoint config from the datastore
 
         # create the label, with a custom value if there is one
         if self.config['custom_label']:
@@ -43,12 +42,12 @@ class NumericBarWidget(BaseWidget):
         dpg.bind_item_font(self.slider, 'big')
 
         self.unit_text = dpg.add_text(
-            default_value=DataStore.plugin.dictionary[self.config['data_point']].unit,
+            default_value=Data.plugin.dictionary[self.config['data_point']].unit,
             parent=self.window
         )
 
     def render(self):
-        data = DataStore.plugin.data[self.config['data_point']]  # get the datapoint data from the datastore
+        data = Data.plugin.data[self.config['data_point']]  # get the datapoint data from the datastore
         if len(data) == 0:  # don't proceed if there is no data yet
             return
         val = data[-1]  # take the last data point

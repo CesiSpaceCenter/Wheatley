@@ -1,23 +1,21 @@
 import dearpygui.dearpygui as dpg
 from math import ceil
 
-from plugins.base_widget import BaseWidget, WidgetConfigItem, WidgetConfigGroup
-from plugins.widget_config import WidgetConfigText, long_str
+from plugins.base_widget import BaseWidget, Types
 
 
 class StatusTableWidget(BaseWidget):
     name = 'Status table'
 
     config_definition = {
-        'cols': WidgetConfigItem(int, 3),
-        '"expression" is a piece of python code that should return 0=Gray, 1=Green, 2=Yellow, 3=Red': WidgetConfigItem(WidgetConfigText),
-        'The "data" dict is available to access data values': WidgetConfigItem(WidgetConfigText),
-        'items': WidgetConfigItem(list[
-            WidgetConfigItem(WidgetConfigGroup[{
-                'expression': WidgetConfigItem(long_str),
-                'label': WidgetConfigItem(str)
-            }])
-        ]),
+        'cols': Types.Int(default=3),
+        '"expression" is a piece of python code that should return 0=Gray, 1=Green, 2=Yellow, 3=Red': Types.Text(),
+        'The "data" dict is available to access data values': Types.Text(),
+        'items': Types.List(Types.Group({
+                'expression': Types.Str({'multiline': True}),
+                'label': Types.Str()
+            })
+        ),
     }
 
     colors = [

@@ -1,19 +1,9 @@
-import typing
-
 import dearpygui.dearpygui as dpg
+
 from plugins.base_plugin import BasePlugin
-from plugins.base_widget import BaseWidget, WidgetConfigItem
-from plugins.data_store import DataStore
+from plugins.data import Data
 from utils import get_widget
-
-class DataPoint(str):
-    pass
-
-class WidgetConfigText(str):
-    pass
-
-class long_str(str):
-    pass
+from plugins.base_widget import BaseWidget, Types
 
 class WidgetConfig(BasePlugin):
     def __init__(self):
@@ -29,28 +19,28 @@ class WidgetConfig(BasePlugin):
         dpg.delete_item(self.inputs_group, children_only=True)  # remove all existing inputs
 
         def update_window_config(_, config_value: any, config_name: str):  # callback for when a window config input is updated
-            config_type = self.active_widget.window_config_definition[config_name].type
+            config_type = self.active_widget.window_config_definition[config_name].parse
             self.new_window_config[config_name] = config_type(config_value)
 
         # create inputs for the widget's window config
         dpg.add_separator(parent=self.inputs_group, label='Window config')
         for name, value in self.active_widget.window_config.items():
-            self.get_input(name, value, self.active_widget.window_config_definition[name].type, update_window_config)
+            self.get_input(name, value, self.active_widget.window_config_definition[name], update_window_config)
 
         def update_widget_config(_, config_value: any, config_name: str):  # callback for when a widget config input is updated
-            config_type = self.active_widget.config_definition[config_name].type
+            config_type = self.active_widget.config_definition[config_name].parse
             self.new_widget_config[config_name] = config_type(config_value)
 
         # create inputs for the widget config
         dpg.add_separator(parent=self.inputs_group, label='Widget config')
         for name, value in self.active_widget.config.items():
-            self.get_input(name, value, self.active_widget.config_definition[name].type, update_widget_config)
+            self.get_input(name, value, self.active_widget.config_definition[name], update_widget_config)
 
         dpg.add_separator(parent=self.inputs_group)
 
         dpg.add_button(parent=self.inputs_group, label='Save', callback=self.save_config, width=-1)
 
-    def get_input(self, name: str, value: any, _type: type, callback: callable, parent: int = None):
+    def get_input(self, name: str, value: any, config_item: Types.Base, callback: callable, parent: int = None):
         """ creates an input depending on the value's type """
         item_config = dict(  # common config for all inputs
             parent=parent if parent is not None else self.inputs_group,
@@ -59,23 +49,21 @@ class WidgetConfig(BasePlugin):
             callback=callback,
             user_data=name
         )
-        match _type.__name__:  # depending on the type of this config item
-            case 'WidgetConfigText':
+        match type(config_item).__name__:  # depending on the type of this config item
+            case 'Text':
                 dpg.add_text(name, parent=item_config['parent'])
-            case 'long_str':
-                dpg.add_input_text(**item_config, multiline=True)
-            case 'str':
-                dpg.add_input_text(**item_config)
-            case 'bool':
+            case 'Str':
+                dpg.add_input_text(**item_config, multiline=config_item.config.get('multiline', False))
+            case 'Bool':
                 dpg.add_checkbox(**item_config)
-            case 'int':
+            case 'Int':
                 dpg.add_input_int(**item_config)
-            case 'float':
+            case 'Float':
                 dpg.add_input_float(**item_config)
             case 'DataPoint':
-                dpg.add_combo([DataPoint(d) for d in DataStore.plugin.dictionary.keys()], **item_config)
-            case 'list':
-                item_type = typing.get_args(_type)[0]
+                dpg.add_combo([d for d in Data.plugin.dictionary.keys()], **item_config)
+            case 'List':
+                subitem_type: Types.Base = config_item.config
                 list_group = dpg.add_tree_node(label=name, parent=item_config['parent'], default_open=True)
                 def build_ui():
                     dpg.delete_item(list_group, children_only=True)  # clear all previous elements
@@ -85,7 +73,7 @@ class WidgetConfig(BasePlugin):
                             value[int(index)] = new_item_value
                             callback(None, value, name)
                         item_group = dpg.add_group(parent=list_group, horizontal=True)
-                        self.get_input(str(i), item_value, item_type.type, list_callback, item_group)
+                        self.get_input(str(i), item_value, subitem_type, list_callback, item_group)
 
                         def remove_item_callback(_a, _b, index):
                             # remove the item and rebuild the ui
@@ -97,21 +85,22 @@ class WidgetConfig(BasePlugin):
 
                 def add_item_callback():
                     # add an empty new value and rebuild the ui
-                    value.append(item_type.type())
+                    a=subitem_type.default()
+                    value.append(a)
                     callback(None, value, name)
                     build_ui()
                 dpg.add_button(label=f'Add to {name}', width=-1, callback=add_item_callback, parent=item_config['parent'])
 
-            case 'WidgetConfigGroup':
-                sub_items: dict[str, WidgetConfigItem] = typing.get_args(_type)[0]
+            case 'Group':
+                subitems: dict[str, Types.Base] = config_item.config
                 item_group = dpg.add_tree_node(label=name, parent=item_config['parent'], default_open=True)
-                for item_name, item_type in sub_items.items():
+                for item_name, item_type in subitems.items():
                     item_value = value[item_name]
                     def list_callback(_, new_item_value, item_name):
                         # update the value list and call the callback
                         value[item_name] = new_item_value
                         callback(None, value, name)
-                    self.get_input(item_name, item_value, item_type.type, list_callback, item_group)
+                    self.get_input(item_name, item_value, item_type, list_callback, item_group)
 
 
 
