@@ -23,7 +23,7 @@ def run():
         app,
         loading,
         widget_config,
-        data_store,
+        data,
         windows_menu
     )
     # initialize plugin manager
@@ -34,7 +34,7 @@ def run():
         menu_bar.MenuBar,
         fonts.Fonts,
         loading.Loading,
-        data_store.DataStore,
+        data.Data,
         widget_config.WidgetConfig,
         app.App,
         windows_menu.WindowsMenu
