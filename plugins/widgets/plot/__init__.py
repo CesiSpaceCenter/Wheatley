@@ -1,5 +1,8 @@
+import bisect
+
 import dearpygui.dearpygui as dpg
 import math
+
 from plugins.base_widget import BaseWidget, Types
 from plugins.data import Data
 
@@ -25,15 +28,14 @@ class PlotWidget(BaseWidget):
             dpg.bind_item_theme(self.window, container_theme)
 
 
-        self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1)
+        self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1, no_mouse_pos=True)
         dpg.add_plot_legend(parent=self.plot)
 
         # horizontal axis
         self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot)
 
         self.series = {}  # dict that will store every dpg's Series
-        self.scatter_series = {}  # dict that will store every dpg scatter_series, only used to highlight the points near the mouse
-        self.tooltip = {}  # dict that will store every dpg tooltip that display the point coordinates near the mouse
+        self.tooltip = None  # dpg tooltip that display the point coordinates near the mouse
         self.y_axis = {}  # dict that will store every dpg's YAxis
 
         # create the axis
@@ -56,25 +58,36 @@ class PlotWidget(BaseWidget):
                 x=[],
                 y=[]
             )
-            self.scatter_series[ser['y']] = dpg.add_scatter_series([], [], parent=self.y_axis[data_point.unit])
-            with dpg.custom_series([], [], channel_count=2, parent=self.y_axis[data_point.unit], callback=self.mouse_event, user_data=ser):
-                self.tooltip[ser['y']] = dpg.add_text()
+
+        with dpg.custom_series([], [], channel_count=2, parent=self.x_axis, callback=self.mouse_event):
+            self.tooltip = dpg.add_text()
         self.reload = True
 
     last_mouse_x = 0
-    def mouse_event(self, _, mouse, ser):
-        if math.isinf(mouse[0]['MouseX_PlotSpace']):
+    def mouse_event(self, _, mouse):
+        px = mouse[0]['MouseX_PlotSpace']
+        if math.isinf(px):
             return
-        px = int(mouse[0]['MouseX_PlotSpace'])
         if px == self.last_mouse_x:
             return
         self.last_mouse_x = px
-        data_x = Data.plugin.data[ser['x']]
-        data_y = Data.plugin.data[ser['y']]
-        distances = [abs(px - xi) for xi in data_x]
-        closest_index = distances.index(min(distances))
-        dpg.set_value(self.tooltip[ser['y']], f'x:{round(data_x[closest_index], 2)} y:{round(data_y[closest_index], 2)}')
-        dpg.set_value(self.scatter_series[ser['y']], [[data_x[closest_index]], [data_y[closest_index]]])
+        texts = []
+        for ser in self.config['series']:
+            if ser['y'] not in self.series:
+                continue
+            data_x = Data.plugin.data[ser['x']]
+            data_y = Data.plugin.data[ser['y']]
+            i = bisect.bisect_left(data_x, px)
+            if i >= len(data_x):
+                i = len(data_x) - 1
+            elif i and data_x[i] - px > px - data_x[i - 1]:
+                i = i - 1
+            try:
+                data_y[i]
+            except IndexError:
+                print(i, px, len(data_x))
+            texts.append(f'{ser["y"]} {round(data_x[i], 2)}, {round(data_y[i], 2)}')
+        dpg.set_value(self.tooltip, '\n'.join(texts))
 
     def render(self):
         if not Data.plugin.has_changed and not self.reload:
@@ -96,5 +109,6 @@ class PlotWidget(BaseWidget):
 
             data_x = data[ser['x']]
             data_y = data[ser['y']]
+            print(dpg.get_item_theme(self.series[ser['y']]))
 
             dpg.set_value(self.series[ser['y']], [data_x, data_y])  # update the series with the new x and y data
