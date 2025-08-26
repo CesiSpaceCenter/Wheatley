@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+from copy import deepcopy
 
 from plugins.base_plugin import BasePlugin
 from plugins.data import Data
@@ -24,7 +25,7 @@ class WidgetConfig(BasePlugin):
 
         # create inputs for the widget's window config
         dpg.add_separator(parent=self.inputs_group, label='Window config')
-        for name, value in self.active_widget.window_config.items():
+        for name, value in deepcopy(self.active_widget.window_config).items():
             self.get_input(name, value, self.active_widget.window_config_definition[name], update_window_config)
 
         def update_widget_config(_, config_value: any, config_name: str):  # callback for when a widget config input is updated
@@ -33,7 +34,7 @@ class WidgetConfig(BasePlugin):
 
         # create inputs for the widget config
         dpg.add_separator(parent=self.inputs_group, label='Widget config')
-        for name, value in self.active_widget.config.items():
+        for name, value in deepcopy(self.active_widget.config).items():
             self.get_input(name, value, self.active_widget.config_definition[name], update_widget_config)
 
         dpg.add_separator(parent=self.inputs_group)
@@ -107,8 +108,8 @@ class WidgetConfig(BasePlugin):
     def save_config(self):
         """ destroy and re-create the selected widget with the new config """
         if self.active_widget is not None:
-            old_widget_config = self.active_widget.config.copy()
-            old_window_config = self.active_widget.window_config.copy()
+            old_widget_config = self.active_widget.config
+            old_window_config = self.active_widget.window_config
             window_tag = self.active_widget.window  # keep the same window tag
             new_widget = type(self.active_widget)(  # create a new widget
                 {**old_window_config, **self.new_window_config},  # merge old config with the new config
