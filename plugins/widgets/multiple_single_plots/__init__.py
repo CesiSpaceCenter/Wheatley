@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
-from plugins.base_widget import BaseWidget, Types
+from plugins.base_widget import BaseWidget
+from plugins.config_ui import config_types
 from plugins.data import Data
 
 
@@ -7,12 +8,12 @@ class MultipleSinglePlotsWidget(BaseWidget):
     name = 'Multiple single plots'
 
     config_definition = {
-        'plot height': Types.Int(default=150),
-        'auto plot height': Types.Bool(default=True),
-        'link x axes': Types.Bool(default=False),
-        'series': Types.List(Types.Group({
-            'x': Types.DataPoint(),
-            'y': Types.DataPoint()
+        'plot height': config_types.Int(default=150),
+        'auto plot height': config_types.Bool(default=True),
+        'link x axes': config_types.Bool(default=False),
+        'series': config_types.List(config_types.Group({
+            'x': config_types.DataPoint(),
+            'y': config_types.DataPoint()
         }))
     }
 

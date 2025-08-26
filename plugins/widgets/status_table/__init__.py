@@ -1,19 +1,20 @@
 import dearpygui.dearpygui as dpg
 from math import ceil
 
-from plugins.base_widget import BaseWidget, Types
+from plugins.base_widget import BaseWidget
+from plugins.config_ui import config_types
 
 
 class StatusTableWidget(BaseWidget):
     name = 'Status table'
 
     config_definition = {
-        'cols': Types.Int(default=3),
-        '"expression" is a piece of python code that should return 0=Gray, 1=Green, 2=Yellow, 3=Red': Types.Text(),
-        'The "data" dict is available to access data values': Types.Text(),
-        'items': Types.List(Types.Group({
-                'expression': Types.Str({'multiline': True}),
-                'label': Types.Str()
+        'cols': config_types.Int(default=3),
+        '"expression" is a piece of python code that should return 0=Gray, 1=Green, 2=Yellow, 3=Red': config_types.Text(),
+        'The "data" dict is available to access data values': config_types.Text(),
+        'items': config_types.List(config_types.Group({
+                'expression': config_types.Str({'multiline': True}),
+                'label': config_types.Str()
             })
         ),
     }

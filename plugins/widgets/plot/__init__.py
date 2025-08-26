@@ -3,7 +3,8 @@ import bisect
 import dearpygui.dearpygui as dpg
 import math
 
-from plugins.base_widget import BaseWidget, Types
+from plugins.base_widget import BaseWidget
+from plugins.config_ui import config_types
 from plugins.data import Data
 
 
@@ -11,9 +12,9 @@ class PlotWidget(BaseWidget):
     name = 'Plot'
 
     config_definition = {
-        'series': Types.List(Types.Group({
-            'x': Types.DataPoint(),
-            'y': Types.DataPoint()
+        'series': config_types.List(config_types.Group({
+            'x': config_types.DataPoint(),
+            'y': config_types.DataPoint()
         }))
     }
 
@@ -28,18 +29,24 @@ class PlotWidget(BaseWidget):
             dpg.bind_item_theme(self.window, container_theme)
 
 
-        self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1, no_mouse_pos=True)
+        self.plot = dpg.add_plot(parent=self.window, width=-1, height=-1, no_mouse_pos=True, crosshairs=True)
         dpg.add_plot_legend(parent=self.plot)
 
         # horizontal axis
         self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot)
 
+        dpg.add_custom_series([], [], channel_count=1, parent=self.x_axis, callback=self.mouse_event, show=True, no_fit=True)
+
         self.series = {}  # dict that will store every dpg's Series
-        self.tooltip = None  # dpg tooltip that display the point coordinates near the mouse
+        self.tags = {}  # dpg tooltip that display the point coordinates near the mouse
         self.y_axis = {}  # dict that will store every dpg's YAxis
 
         # create the axis
         for ser in self.config['series']:
+            print('creating series', ser)
+            if ser['x'] == '' or ser['y'] == '':
+                continue
+
             data_point = Data.plugin.dictionary[ser['y']]  # get the datapoint config from the datastore
 
             # every y axis represents a unit
@@ -58,40 +65,46 @@ class PlotWidget(BaseWidget):
                 x=[],
                 y=[]
             )
+            print('created series', ser)
 
-        with dpg.custom_series([], [], channel_count=2, parent=self.x_axis, callback=self.mouse_event):
-            self.tooltip = dpg.add_text()
         self.reload = True
+        print('init done')
 
     last_mouse_x = 0
+    mouse_x = 0
     def mouse_event(self, _, mouse):
-        px = mouse[0]['MouseX_PlotSpace']
-        if math.isinf(px):
-            return
-        if px == self.last_mouse_x:
-            return
-        self.last_mouse_x = px
-        texts = []
-        for ser in self.config['series']:
-            if ser['y'] not in self.series:
-                continue
-            data_x = Data.plugin.data[ser['x']]
-            data_y = Data.plugin.data[ser['y']]
-            i = bisect.bisect_left(data_x, px)
-            if i >= len(data_x):
-                i = len(data_x) - 1
-            elif i and data_x[i] - px > px - data_x[i - 1]:
-                i = i - 1
-            try:
-                data_y[i]
-            except IndexError:
-                print(i, px, len(data_x))
-            texts.append(f'{ser["y"]} {round(data_x[i], 2)}, {round(data_y[i], 2)}')
-        dpg.set_value(self.tooltip, '\n'.join(texts))
+        self.mouse_x = mouse[0]['MouseX_PlotSpace']
 
     def render(self):
+        if self.ready and self.mouse_x != self.last_mouse_x:
+            self.last_mouse_x = self.mouse_x
+            x_min, x_max = dpg.get_axis_limits(self.x_axis)
+            if math.isinf(self.mouse_x) or int(self.mouse_x) not in range(int(x_min), int(x_max)):  # mouse is out of the plot
+                self.mouse_x = -1
+
+            #print('mouse move', self.mouse_x)
+            for ser in self.config['series']:
+                if ser['y'] == '' or ser['x'] == '' or ser['y'] not in self.config['series']:
+                    continue
+                data_x = Data.plugin.data[ser['x']]
+                data_y = Data.plugin.data[ser['y']]
+                if len(data_x) != len(data_y):
+                    print('XY sizes mismatch for', ser['y'])
+                    continue
+                data_point = Data.plugin.dictionary[ser['y']]
+                if self.mouse_x != -1:
+                    i = bisect.bisect_left(data_x, self.mouse_x)
+                    if i >= len(data_x):
+                        i = len(data_x) - 1
+                    elif i and data_x[i] - self.mouse_x > self.mouse_x - data_x[i - 1]:
+                        i = i - 1
+                    dpg.configure_item(self.series[ser['y']], label=f'{data_point.name} ({data_y[i]}' + (data_point.unit if data_point.unit else '') + ')')
+                else:
+                    dpg.configure_item(self.series[ser['y']], label=data_point.name + (f' ({data_point.unit})' if data_point.unit else ''))
+
         if not Data.plugin.has_changed and not self.reload:
             return
+        print('render')
 
         # get the datapoit's data from the datastore
         data = Data.plugin.data
@@ -103,12 +116,16 @@ class PlotWidget(BaseWidget):
 
         # update the axis limits to fit with new the data
         #dpg.set_axis_limits(self.x_axis, data_x[0] - 30, data_x[-1])
+        print('populating series')
         for ser in self.config['series']:
-            if len(data[ser['x']]) == 0 or len(data[ser['x']]) == 0:  # ignore if there is no data yet
-                continue
-
             data_x = data[ser['x']]
             data_y = data[ser['y']]
-            print(dpg.get_item_theme(self.series[ser['y']]))
+            if len(data_x) == 0 or len(data_y) == 0:  # ignore if there is no data yet
+                continue
+            if len(data_x) != len(data_y):
+                print('XY sizes mismatch for', ser['y'])
+                return
+
+            print(len(data_x), len(data_y))
 
             dpg.set_value(self.series[ser['y']], [data_x, data_y])  # update the series with the new x and y data

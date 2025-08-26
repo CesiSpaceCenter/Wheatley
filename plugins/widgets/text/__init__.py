@@ -1,13 +1,14 @@
 import dearpygui.dearpygui as dpg
-from plugins.base_widget import BaseWidget, Types
+from plugins.base_widget import BaseWidget
+from plugins.config_ui import config_types
 
 
 class TextWidget(BaseWidget):
     name = 'Text'
 
     config_definition = {
-        'text': Types.Str(),
-        'bullet': Types.Bool(default=False)
+        'text': config_types.Str(),
+        'bullet': config_types.Bool(default=False)
     }
 
     def __init__(self, *args):

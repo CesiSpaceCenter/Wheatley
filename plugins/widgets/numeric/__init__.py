@@ -1,6 +1,7 @@
 import dearpygui.dearpygui as dpg
 
-from plugins.base_widget import BaseWidget, Types
+from plugins.base_widget import BaseWidget
+from plugins.config_ui import config_types
 from plugins.data import Data
 
 
@@ -8,11 +9,11 @@ class NumericWidget(BaseWidget):
     name = 'Numeric'
 
     config_definition = {
-        'data_point': Types.DataPoint(),
-        'custom_label': Types.Bool(default=False),
-        'custom_label_value': Types.Str(),
-        'round': Types.Int(default=2),
-        'show detail': Types.Bool(default=True)
+        'data_point': config_types.DataPoint(),
+        'custom_label': config_types.Bool(default=False),
+        'custom_label_value': config_types.Str(),
+        'round': config_types.Int(default=2),
+        'show detail': config_types.Bool(default=True)
     }
 
     def __init__(self, *args):
