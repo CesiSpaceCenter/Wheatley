@@ -23,6 +23,11 @@ class List(Base):
     def parse(self, val: Any):
         return list(val)
 
+class Select(Base):
+    base_default = None
+    def parse(self, val: Any):
+        return val
+
 class DataPoint(Base):
     base_default = ''
 

@@ -1,7 +1,6 @@
 import dearpygui.dearpygui as dpg
 from copy import deepcopy
 
-from plugins.data import Data
 from plugins.config_ui import config_types
 
 class ConfigUI:
@@ -40,6 +39,7 @@ class ConfigUI:
             case 'Float':
                 dpg.add_input_float(**item_config)
             case 'DataPoint':
+                from plugins.data import Data
                 dpg.add_combo([d for d in Data.plugin.dictionary.keys()], **item_config)
             case 'List':
                 subitem_type: config_types.Base = config_item.config
@@ -80,3 +80,6 @@ class ConfigUI:
                         value[item_name] = new_item_value
                         callback(None, value, name)
                     ConfigUI.get_input(item_name, item_value, item_type, list_callback, item_group)
+
+            case 'Select':
+                dpg.add_combo(config_item.config, **item_config)
