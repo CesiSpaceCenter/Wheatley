@@ -9,9 +9,9 @@ class NumericBarWidget(BaseWidget):
     name = 'Numeric bar'
 
     config_definition = {
-        'data_point': config_types.DataPoint(),
-        'custom_label': config_types.Bool(default=False),
-        'custom_label_value': config_types.Str(),
+        'data point': config_types.DataPoint(),
+        'custom label': config_types.Bool(default=False),
+        'custom label value': config_types.Str(),
         'round': config_types.Int(default=2),
         'min': config_types.Int(default=0),
         'max': config_types.Int(default=100)
@@ -20,11 +20,14 @@ class NumericBarWidget(BaseWidget):
     def __init__(self, *args):
         super(NumericBarWidget, self).__init__(*args)
 
-        data_point = Data.plugin.dictionary[self.config['data_point']]  # get the datapoint config from the datastore
+        if self.config['data point'] == '':
+            return
+
+        data_point = Data.plugin.dictionary[self.config['data point']]  # get the datapoint config from the datastore
 
         # create the label, with a custom value if there is one
-        if self.config['custom_label']:
-            label = self.config['custom_label_value']
+        if self.config['custom label']:
+            label = self.config['custom label value']
         else:
             label = data_point.name
 
@@ -43,12 +46,15 @@ class NumericBarWidget(BaseWidget):
         dpg.bind_item_font(self.slider, 'big')
 
         self.unit_text = dpg.add_text(
-            default_value=Data.plugin.dictionary[self.config['data_point']].unit,
+            default_value=Data.plugin.dictionary[self.config['data point']].unit,
             parent=self.window
         )
 
     def render(self):
-        data = Data.plugin.data[self.config['data_point']]  # get the datapoint data from the datastore
+        if self.config['data point'] == '':
+            return
+
+        data = Data.plugin.data[self.config['data point']]  # get the datapoint data from the datastore
         if len(data) == 0:  # don't proceed if there is no data yet
             return
         val = data[-1]  # take the last data point
