@@ -109,7 +109,7 @@ class App(BasePlugin):
             # save the config file into the zip
             save_file.writestr('config.json', json.dumps(data, indent=2))
 
-            with tempfile.NamedTemporaryFile() as layout_file:  # open a temporary file
+            with tempfile.NamedTemporaryFile('r', delete_on_close=False) as layout_file:  # open a temporary file
                 dpg.save_init_file(layout_file.name)  # save dpg's init file into the temp file
                 save_file.writestr('layout.ini', layout_file.read())  # read the tempfile and put its content into the zip
 
