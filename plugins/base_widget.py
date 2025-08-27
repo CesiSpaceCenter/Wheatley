@@ -44,6 +44,10 @@ class BaseWidget(BasePlugin):
             else:
                 self.config[k] = v.default()  # use the default value for this config key
 
+        def on_close():
+            from plugins.widget_manager import WidgetManager
+            WidgetManager.plugin.delete_widget(self)
+
         # in case we want to create a widget with an existing window
         # don't recreate the window, only reconfigure it, and delete all of its childrens
         if window_tag is not None and dpg.does_item_exist(window_tag):
@@ -53,13 +57,13 @@ class BaseWidget(BasePlugin):
             window_config = self.window_config.copy()
             if dpg.get_item_label(self.window) == window_config['label']:
                 del window_config['label']
-            dpg.configure_item(self.window, **window_config, user_data=self)  # user_data is the widget instance object
+            dpg.configure_item(self.window, **window_config, user_data=self, on_close=on_close)  # user_data is the widget instance object
             dpg.delete_item(self.window, children_only=True)
         else:  # new window
             # generate a random unique (enough) window tag
             # we need to use an integer for the window tag, because dpg's init file only works this way
             window_tag = int(str(uuid4().int)[:8])
-            self.window = dpg.add_window(**self.window_config, user_data=self, tag=window_tag)  # user_data is the widget instance object
+            self.window = dpg.add_window(**self.window_config, user_data=self, tag=window_tag, on_close=on_close)  # user_data is the widget instance object
 
     def render(self):
         """ Widget main loop, code to be run at every render loop """

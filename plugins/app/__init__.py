@@ -9,15 +9,9 @@ import zipfile
 import base_app
 from plugins.base_plugin import BasePlugin
 from plugins.base_widget import BaseWidget
-
 from plugins.loading import Loading
+from plugins.widget_manager import WidgetManager
 
-from plugins.widgets.text import TextWidget
-from plugins.widgets.plot import PlotWidget
-from plugins.widgets.numeric import NumericWidget
-from plugins.widgets.numeric_bar import NumericBarWidget
-from plugins.widgets.status_table import StatusTableWidget
-from plugins.widgets.multiple_single_plots import MultipleSinglePlotsWidget
 from utils import get_widget
 
 # the "app" is the layout configuration created by the user
@@ -27,14 +21,7 @@ from utils import get_widget
 
 class App(BasePlugin):
     current_file = None
-    widgets = [
-        TextWidget,
-        PlotWidget,
-        NumericBarWidget,
-        NumericWidget,
-        StatusTableWidget,
-        MultipleSinglePlotsWidget
-    ]
+
 
     def __init__(self):
         dpg.configure_app(docking=True, docking_space=True)
@@ -42,12 +29,6 @@ class App(BasePlugin):
             dpg.add_menu_item(label='Open an app file', callback=self.open_file_dialog)
             dpg.add_menu_item(label='Save', callback=self.save)
             dpg.add_menu_item(label='Save as', callback=self.save_file_dialog)
-            with dpg.menu(label='Add widget'):
-                def add_widget_callback(_sender, _, widget: BaseWidget):
-                    widget_object = widget()
-                    widget_object.ready = True  # set ready only after __init__ is done
-                for widget in self.widgets:  # add a menu item for each widget
-                    dpg.add_menu_item(label=widget.name, callback=add_widget_callback, user_data=widget)
 
         if 'APP_FILE' in os.environ:  # open app file if there is one in the env var
             self.load(os.environ['APP_FILE'])
@@ -94,7 +75,7 @@ class App(BasePlugin):
 
             # then initialize the widgets
             for widget_data in data['widgets']:  # for every widget in the widgets file
-                for widget in self.widgets:  # find the corresponding widget
+                for widget in WidgetManager.plugin.widget_types:  # find the corresponding widget
                     if widget.__name__ == widget_data['widget']:  # corresponding name
                         # create the widget object from its class, with the widget&window config and the window tag
                         widget_object: BaseWidget = widget(widget_data['window'], widget_data['config'], widget_data['window_tag'])
@@ -115,20 +96,14 @@ class App(BasePlugin):
             'widgets': []
         }
         # find all widgets
-        for item in dpg.get_all_items():
-            widget = get_widget(item)
-            if widget:
-                # find the widget type
-                for w in self.widgets:
-                    if w == type(widget):
-                        # add the widget to the config
-                        data['widgets'].append({
-                            'window_tag': widget.window,
-                            'widget': w.__name__,
-                            'config': widget.config,
-                            'window': widget.window_config
-                        })
-                        break
+        for widget in WidgetManager.plugin.widgets:
+            # add the widget to the config
+            data['widgets'].append({
+                'window_tag': widget.window,
+                'widget': type(widget).__name__,
+                'config': widget.config,
+                'window': widget.window_config
+            })
 
         with zipfile.ZipFile(path, 'w') as save_file:
             # save the config file into the zip

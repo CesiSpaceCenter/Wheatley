@@ -22,6 +22,7 @@ def run():
         fonts,
         app,
         loading,
+        widget_manager,
         widget_config,
         data,
         windows_menu
@@ -35,6 +36,7 @@ def run():
         fonts.Fonts,
         loading.Loading,
         data.Data,
+        widget_manager.WidgetManager,
         widget_config.WidgetConfig,
         app.App,
         windows_menu.WindowsMenu
@@ -49,7 +51,7 @@ def run():
     plugin_manager.after_viewport()
 
     while dpg.is_dearpygui_running():  # main render loop
-        plugin_manager.render()  # run every plugin's main loop code
         dpg.render_dearpygui_frame()  # render dpg
+        plugin_manager.render()  # run every plugin's main loop code
 
     dpg.destroy_context()

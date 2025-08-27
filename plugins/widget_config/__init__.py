@@ -1,9 +1,9 @@
 import dearpygui.dearpygui as dpg
 
 from plugins.base_plugin import BasePlugin
-from utils import get_widget
 from plugins.base_widget import BaseWidget
 from plugins.config_ui import ConfigUI
+from plugins.widget_manager import WidgetManager
 
 class WidgetConfig(BasePlugin):
     def __init__(self):
@@ -18,13 +18,7 @@ class WidgetConfig(BasePlugin):
         dpg.delete_item(self.window, children_only=True)  # remove all existing inputs
 
         def callback(window_config, widget_config):  # callback for when the window or widget config is updated
-            new_widget = type(self.active_widget)(  # create a new widget
-                window_config if window_config is not None else self.active_widget.window_config,
-                widget_config if widget_config is not None else self.active_widget.config,
-                self.active_widget.window
-            )
-            self.active_widget = new_widget
-            new_widget.ready = True  # set widget ready only after __init__ is done
+            self.active_widget = WidgetManager.plugin.reset_widget(self.active_widget, window_config, widget_config)
 
         dpg.add_separator(parent=self.window, label='Window config')
         ConfigUI(self.window, self.active_widget.window_config_definition, self.active_widget.window_config, lambda conf: callback(conf, None))
@@ -38,16 +32,17 @@ class WidgetConfig(BasePlugin):
         if active_window == self.window:  # abort if the selected window is the widget config window
             return
 
-        widget = get_widget(active_window)
-        if widget:  # selected window is a widget
-            if self.active_widget == widget:  # abort if the selected widget has not changed
-                return
-            # different widget selected
-            self.new_widget_config = {}
-            self.new_window_config = {}
-            self.active_widget = widget
-            self.render_config_window()
+        active_widget = None
+        for widget in WidgetManager.plugin.widgets:
+            if widget.window == active_window:  # selected window is a widget
+                active_widget = widget
+                break
 
-        if not widget and self.active_widget is not None:  # selected window is not a widget
+        if not active_widget and self.active_widget is not None:  # selected window is not a widget
             self.active_widget = None
             dpg.delete_item(self.window, children_only=True)
+        elif active_widget != self.active_widget:
+            self.active_widget = active_widget
+            self.new_widget_config = {}
+            self.new_window_config = {}
+            self.render_config_window()
