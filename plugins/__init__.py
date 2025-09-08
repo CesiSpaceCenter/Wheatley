@@ -1,15 +1,20 @@
+import logging
 from plugins.base_plugin import BasePlugin
-
 
 class PluginManager:
     plugins = []
 
+    def __init__(self):
+        self.logger = logging.getLogger('PluginManager')
+
     def register(self, plugins: list[type[BasePlugin]]):
         """ Loads a list of plugins. __init__ will be called, and the plugin object will be stored in the class's plugin attribute """
+        self.logger.info(f'Registering {len(plugins)} plugins: {[plugin.__name__ for plugin in plugins]}')
         for plugin_class in plugins:
             plugin = plugin_class()
             plugin_class.plugin = plugin  # store the plugins object in a class attribute, so we can access the object by just importing the file
             self.plugins.append(plugin)
+            self.logger.debug(f'Registered plugin {plugin}')
 
     def _call_for_all(self, method: str):
         """ calls a method for all the plugins """

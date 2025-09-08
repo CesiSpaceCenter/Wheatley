@@ -8,7 +8,6 @@ import zipfile
 
 import base_app
 from plugins.base_plugin import BasePlugin
-from plugins.base_widget import BaseWidget
 from plugins.loading import Loading
 from plugins.widget_manager import WidgetManager
 
@@ -22,8 +21,8 @@ from utils import get_widget
 class App(BasePlugin):
     current_file = None
 
-
     def __init__(self):
+        super().__init__()
         dpg.configure_app(docking=True, docking_space=True)
         with dpg.menu(parent='menubar', label='App'):  # add an "App" menu to the menubar
             dpg.add_menu_item(label='Open an app file', callback=self.open_file_dialog)
@@ -54,6 +53,7 @@ class App(BasePlugin):
     def load(self, path: str):
         """ Loads an app file, creating its widgets and configuration """
         self.current_file = path
+        self.logger.info(f'Loading app file {path}')
 
         with zipfile.ZipFile(path, 'r') as save_file:
             # extract dpg's init file into a temporary file
@@ -61,6 +61,7 @@ class App(BasePlugin):
             # right now if it is deleted, dpg can't load it (race condition? configure_app is async?)
             layout_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
             layout = save_file.read('layout.ini').decode()
+            self.logger.debug(f'layout config size: {len(layout)}')
             layout_file.write(layout)
             layout_file.flush()
 
@@ -68,6 +69,7 @@ class App(BasePlugin):
             dpg.configure_app(docking=True, docking_space=True, init_file=layout_file.name)
 
             data = json.loads(save_file.read('config.json'))
+            self.logger.debug(f'app config size: {len(data)}')
 
             # first create all the widget windows
             for widget_data in data['widgets']:  # for every widget in the widgets file
@@ -78,8 +80,7 @@ class App(BasePlugin):
                 for widget in WidgetManager.plugin.widget_types:  # find the corresponding widget
                     if widget.__name__ == widget_data['widget']:  # corresponding name
                         # create the widget object from its class, with the widget&window config and the window tag
-                        widget_object: BaseWidget = widget(widget_data['window'], widget_data['config'], widget_data['window_tag'])
-                        widget_object.ready = True  # only after __init__ is done, set the widget as ready
+                        WidgetManager.plugin.create_widget(widget, widget_data['window'], widget_data['config'], widget_data['window_tag'])
                         break
 
             #layout_file.close()
@@ -111,7 +112,9 @@ class App(BasePlugin):
 
             with tempfile.NamedTemporaryFile('r', delete_on_close=False) as layout_file:  # open a temporary file
                 dpg.save_init_file(layout_file.name)  # save dpg's init file into the temp file
+                self.logger.debug(f'temp layout file: {layout_file.name}, size: {os.path.getsize(layout_file)}')
                 save_file.writestr('layout.ini', layout_file.read())  # read the tempfile and put its content into the zip
+        self.logger.info(f'Saved file {path}')
 
     def render(self):
         # call the render method for all widgets

@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
 from uuid import uuid4
+import logging
 
 from plugins.base_plugin import BasePlugin
 import plugins.config_ui.config_types as config_types
@@ -22,6 +23,7 @@ class BaseWidget(BasePlugin):
 
     def __init__(self, window_config : dict[str, any] = None, widget_config : dict[str, any] = None, window_tag : int = None):
         # add some window config for all widget
+        self.logger = logging.getLogger(repr(self))
         self.window_config_definition['label'] = config_types.Str()
         self.window_config_definition['no_scrollbar'] = config_types.Bool(default=False)
         self.window_config_definition['no_scroll_with_mouse'] = config_types.Bool(default=False)
@@ -64,6 +66,11 @@ class BaseWidget(BasePlugin):
             # we need to use an integer for the window tag, because dpg's init file only works this way
             window_tag = int(str(uuid4().int)[:8])
             self.window = dpg.add_window(**self.window_config, user_data=self, tag=window_tag, on_close=on_close)  # user_data is the widget instance object
+
+        self.logger.debug(f'Init done, config:{self.config} window_config:{self.window_config}, window_tag:{self.window}')
+
+    def __repr__(self):
+        return f'{self.name}#{hex(id(self))}'
 
     def render(self):
         """ Widget main loop, code to be run at every render loop """

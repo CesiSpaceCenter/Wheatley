@@ -6,6 +6,7 @@ from dearpygui_ext.themes import create_theme_imgui_light, create_theme_imgui_da
 
 class WindowsMenu(BasePlugin):
     def __init__(self):
+        super().__init__()
         with dpg.menu(parent='menubar', label='Windows'):
             def change_window_parameter(_, value, key):
                 for item in dpg.get_all_items():

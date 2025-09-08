@@ -1,12 +1,19 @@
 import dearpygui.dearpygui as dpg
 from copy import deepcopy
+import logging
 
 from plugins.config_ui import config_types
 
+# this plugin does not instanciate the BasePlugin class, because it is just a utility class, and will be instanciated
+# and initiated multiple times in various places
+
 class ConfigUI:
     def __init__(self, parent: int | str, definition: dict[str, config_types.Base], default_values: dict[str, any], save_callback: callable):
+        self.logger = logging.getLogger(f'ConfigUI#{hex(id(self))}')
         self.definition = definition
         self.values = deepcopy(default_values)
+
+        self.logger.debug(f'definition: {definition} default: {self.values}')
 
         def callback(_, config_value, config_name):
             config_type = self.definition[config_name].parse

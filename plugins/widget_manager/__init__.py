@@ -23,6 +23,7 @@ class WidgetManager(BasePlugin):
     ]
 
     def __init__(self):
+        super().__init__()
         self.widgets: list[BaseWidget] = []
 
         with dpg.menu(parent='menubar', label='Widget'):
@@ -42,6 +43,7 @@ class WidgetManager(BasePlugin):
         """ creates a new widget and adds it to the registry """
         widget = widget_type(window_config, widget_config, window_tag)
         self.widgets.append(widget)
+        self.logger.info(f'Creating widget {widget}')
         widget.ready = True
 
     def reset_widget(
@@ -58,10 +60,12 @@ class WidgetManager(BasePlugin):
         index = self.widgets.index(widget)
         self.widgets[index] = widget_type(window_config, widget_config, window_tag)
         self.widgets[index].ready = True
+        self.logger.info(f'Reset widget {widget}, new: {self.widgets[index]}')
         return self.widgets[index]
 
     def delete_widget(self, widget: BaseWidget):
         """ closes a widget window and remove it from the registry """
+        self.logger.info(f'Deleting widget {widget}')
         if dpg.does_item_exist(widget.window):
             dpg.delete_item(widget.window)
         self.widgets.remove(widget)

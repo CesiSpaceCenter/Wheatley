@@ -7,6 +7,7 @@ from plugins.widget_manager import WidgetManager
 
 class WidgetConfig(BasePlugin):
     def __init__(self):
+        super().__init__()
         self.window = dpg.add_window(label='Widget config', width=300, height=600)
         self.active_widget: BaseWidget = None
         # the next 2 dict will store the temporary new config. they are updated in real-time with the inputs
@@ -42,6 +43,7 @@ class WidgetConfig(BasePlugin):
             self.active_widget = None
             dpg.delete_item(self.window, children_only=True)
         elif active_widget != self.active_widget:
+            self.logger.debug(f'New widget selected {active_widget}, previous: {self.active_widget}')
             self.active_widget = active_widget
             self.new_widget_config = {}
             self.new_window_config = {}
