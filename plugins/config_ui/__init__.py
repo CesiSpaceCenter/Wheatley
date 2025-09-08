@@ -1,5 +1,7 @@
 import dearpygui.dearpygui as dpg
 from copy import deepcopy
+from os.path import basename
+import filedialpy
 import logging
 
 from plugins.config_ui import config_types
@@ -87,6 +89,15 @@ class ConfigUI:
                         value[item_name] = new_item_value
                         callback(None, value, name)
                     ConfigUI.get_input(item_name, item_value, item_type, list_callback, item_group)
+
+            case 'File':
+                with dpg.group(horizontal=True, parent=parent):
+                    path_text = dpg.add_text()
+                    def file_callback():
+                        path = filedialpy.openFile()
+                        dpg.set_value(path_text, basename(path))
+                        callback(None, path, name)
+                    dpg.add_button(label='Open file', callback=file_callback)
 
             case 'Select':
                 dpg.add_combo(config_item.config, **item_config)

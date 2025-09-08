@@ -67,3 +67,9 @@ class Bool(Base):
 
 class Text(Base):
     pass
+
+class File(Base):
+    base_default = ''
+
+    def parse(self, val: Any):
+        return str(val)
