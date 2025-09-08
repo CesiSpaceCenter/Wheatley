@@ -1,76 +1,57 @@
 import os
-
-from plugins.base_plugin import BasePlugin
 import dearpygui.dearpygui as dpg
 import re
-from dataclasses import dataclass
 
-@dataclass
-class DataPointConfig:
-    name: str
-    type: type
-    unit: str
+from plugins.base_plugin import BasePlugin
+from plugins.config_ui import ConfigUI, config_types
+from plugins.data.datapoint_config import DataPointConfig
+from plugins.data.data_source import DataSource
+from plugins.data.sources import csv
 
-# une variable "available sources" qui prends des classes dans un dossier (une classe "csv", une classe "udp", etc)
-# on doit choisir une classe de source, chaque classe construit son UI (file picker, etc)
 
 class Data(BasePlugin):
     data: dict[str, list[any]] = {}
     dictionary: dict[str, DataPointConfig] = {}
     has_changed: bool = False
-    """ = {
-        'accx': DataPointConfig(name='Accélération X', type=float, unit='m/s²'),
-        'accy': DataPointConfig(name='Accélération Y', type=float, unit='m/s²'),
-        'accz': DataPointConfig(name='Accélération Z', type=float, unit='m/s²'),
-        'gyrx': DataPointConfig(name='Orientation X', type=float, unit='°'),
-        'gyry': DataPointConfig(name='Orientation Y', type=float, unit='°'),
-        'gyrz': DataPointConfig(name='Orientation Z', type=float, unit='°'),
-        'alt': DataPointConfig(name='Altitude', type=float, unit='m'),
-        'temp': DataPointConfig(name='Température', type=float, unit='°C'),
-        't': DataPointConfig(name='Temps', type=float, unit='s'),
-    }"""
+    sources: dict[str, type[DataSource]] = {
+        'csv': csv.CSV
+    }
+    source: DataSource | None = None
+
 
     def __init__(self):
-        with dpg.window():
-            dpg.add_slider_int(label='time window size', tag='time_window_size')
-            dpg.add_slider_int(label='time window position', tag='time_window_pos')
+        super().__init__()
+        with dpg.menu(parent='menubar', label='Data') as menu:
+            config_definition = {
+                'data source': config_types.Select(list(self.sources.keys()))
+            }
+            source_config_ui = None
+            def update_config(conf):  # data source has been changed
+                nonlocal source_config_ui
+                if conf['data source'] == '':
+                    self.source = None
+                else:
+                    new_source = self.sources[conf['data source']]
+                    if type(self.source) != new_source:
+                        self.source = new_source(self.data_changed, self.metadata_changed)
+                        # create the config ui
+                        dpg.delete_item(source_config_ui, children_only=True)
+                        ConfigUI(source_config_ui, self.source.config_definition, self.source.config, self.source.config_changed)
 
-        for file in os.listdir('data'):
-            if file.endswith('.csv'):
-                #print(file)
-                with open('data/' + file, 'r') as f:
-                    last_ts = {}
-                    header = []
-                    for line_num, line in enumerate(f.readlines()):
-                        line = line.strip().split(',')
-                        if line_num == 0:
-                            for k in line:
-                                name, unit, subunit = re.match(r"^(\w+)(?:\((\w+)(?:\[([^\]]*)\])?\))?$", k).groups()
-                                unit = subunit if subunit is not None else (unit if unit is not None else '')
-                                name = file.replace('.csv', '') + ' ' + name
-                                #print('', name)
-                                self.dictionary[name] = DataPointConfig(name=name, type=float, unit=unit)
-                                self.data[name] = []
-                                last_ts[name] = 0
-                                header.append(name)
-                            #print('', header)
-                        else:
-                            for i, k in enumerate(line):
-                                name = header[i]
-                                if file.replace('.csv', '') not in name:
-                                    print('--- wrong filename', name, file, self.dictionary.keys(), i)
-                                _type = self.dictionary[name].type
-                                if 'time' in name:
-                                    if _type(k) - last_ts[name] < 0:
-                                        pass#print('----wrong t', k, last_ts[name])
-                                    last_ts[name] = _type(k)
-                                self.data[name].append(_type(k))
+            ConfigUI(menu, config_definition, {'data source': ''}, update_config)
+            dpg.add_separator(label='Source config')
+            source_config_ui = dpg.add_group()
 
+    def metadata_changed(self, metadata: dict[str, DataPointConfig]):
+        # called by the data source class when new metadata is available
+        self.logger.info(f'New metadata {metadata}')
+        for k, v in metadata.items():
+            if k not in self.data:
+                self.data[k] = []
+                self.dictionary[k] = v
+
+    def data_changed(self, data: dict[str, list[any]]):
+        # called by the data source class when new metadata is available
+        for k, v in data.items():
+            self.data[k].extend(v)
         self.has_changed = True
-
-
-    def render(self):
-        # add random data for each datapoints
-        """self.data['t'].append(time.monotonic())
-        for i, item in enumerate(list(self.dictionary.keys())[:-1]):
-            self.data[item].append(math.sin(time.monotonic()+i))"""
