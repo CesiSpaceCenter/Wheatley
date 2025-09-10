@@ -35,7 +35,7 @@ class PlotWidget(BaseWidget):
         # horizontal axis
         self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot)
 
-        dpg.add_custom_series([], [], channel_count=1, parent=self.x_axis, callback=self.mouse_event, show=True, no_fit=True)
+        #dpg.add_custom_series([], [], channel_count=1, parent=self.x_axis, callback=self.mouse_event, show=True, no_fit=True)
 
         self.series = {}  # dict that will store every dpg's Series
         self.tags = {}  # dpg tooltip that display the point coordinates near the mouse
