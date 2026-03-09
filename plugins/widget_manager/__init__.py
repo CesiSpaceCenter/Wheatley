@@ -9,6 +9,7 @@ from plugins.widgets.numeric import NumericWidget
 from plugins.widgets.numeric_bar import NumericBarWidget
 from plugins.widgets.status_table import StatusTableWidget
 from plugins.widgets.multiple_single_plots import MultipleSinglePlotsWidget
+from plugins.widgets.threedim_model import ThreeDimModel
 
 # this class is mainly just to store widgets
 
@@ -19,7 +20,8 @@ class WidgetManager(BasePlugin):
         NumericBarWidget,
         NumericWidget,
         StatusTableWidget,
-        MultipleSinglePlotsWidget
+        MultipleSinglePlotsWidget,
+        ThreeDimModel
     ]
 
     def __init__(self):

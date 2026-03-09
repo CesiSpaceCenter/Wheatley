@@ -1,12 +1,10 @@
-import os
 import dearpygui.dearpygui as dpg
-import re
 
 from plugins.base_plugin import BasePlugin
 from plugins.config_ui import ConfigUI, config_types
 from plugins.data.datapoint_config import DataPointConfig
 from plugins.data.data_source import DataSource
-from plugins.data.sources import csv
+from plugins.data.sources import csv_file, udp
 
 
 class Data(BasePlugin):
@@ -14,7 +12,8 @@ class Data(BasePlugin):
     dictionary: dict[str, DataPointConfig] = {}
     has_changed: bool = False
     sources: dict[str, type[DataSource]] = {
-        'csv': csv.CSV
+        'CSV file': csv_file.CSV,
+        'UDP': udp.UDP
     }
     source: DataSource | None = None
 
@@ -46,9 +45,8 @@ class Data(BasePlugin):
         # called by the data source class when new metadata is available
         self.logger.info(f'New metadata {metadata}')
         for k, v in metadata.items():
-            if k not in self.data:
-                self.data[k] = []
-                self.dictionary[k] = v
+            self.data[k] = []
+            self.dictionary[k] = v
 
     def data_changed(self, data: dict[str, list[any]]):
         # called by the data source class when new metadata is available
