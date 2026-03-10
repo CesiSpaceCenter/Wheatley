@@ -1,10 +1,12 @@
+
+import os
+os.environ["PYOPENGL_PLATFORM"] = "egl"
 import dearpygui.dearpygui as dpg
 
 from plugins.base_widget import BaseWidget
 from plugins.config_ui import config_types
 from plugins.data import Data
 
-import numpy as np
 import pyrender
 import trimesh
 import numpy as np
@@ -22,6 +24,8 @@ class ThreeDimModel(BaseWidget):
     def __init__(self, *args):
         super(ThreeDimModel, self).__init__(*args)
 
+        self.logger.info('init')
+
         """if self.config['orientation_x'] == '':
             return
         if self.config['orientation_y'] == '':
@@ -29,32 +33,47 @@ class ThreeDimModel(BaseWidget):
         if self.config['orientation_z'] == '':
             return"""
 
-        self.texture = dpg.add_raw_texture(
-            parent=self.window,
-            width=512,
-            height=512,
-            default_value=[0] * 512 * 512,  # fill with 0 (black pixels)
-            format=dpg.mvFormat_Float_rgb
-        )
+        with dpg.texture_registry():
+            self.texture = dpg.add_raw_texture(
+                width=512,
+                height=512,
+                default_value=[0] * 512 * 512,  # fill with 0 (black pixels)
+                format=dpg.mvFormat_Float_rgb
+            )
         self.image = dpg.add_image(parent=self.window, texture_tag=self.texture, width=512, height=512)
 
-        mesh_trimesh = trimesh.load("model.gltf")
-        mesh = pyrender.Mesh.from_trimesh(mesh_trimesh)
+        self.logger.info('loading model')
+        mesh = trimesh.load("model.gltf")
+        mesh = pyrender.Mesh.from_trimesh(list(mesh.geometry.values()))
 
+
+        self.logger.info('creating scene')
         self.scene = pyrender.Scene()
 
-        # ajouter mesh et garder le node
-        self.node = self.scene.add(mesh)
+        pose = trimesh.transformations.rotation_matrix(
+            np.radians(-90),  # angle
+            [1, 0, 0]  # axe
+        )
+        self.scene.add(mesh, pose=pose)
 
-        camera = pyrender.PerspectiveCamera(yfov=np.pi / 3)
-        camera_pose = np.eye(4)
-        camera_pose[2, 3] = 2
+
+        self.logger.info('creating camera')
+        camera = pyrender.PerspectiveCamera(yfov=np.pi / 3.0)
+        camera_pose = np.array([
+            [0, 0, 1, 3],  # position caméra
+            [0, 1, 0, 1],
+            [-1, 0, 0, 0],
+            [0, 0, 0, 1],
+        ])
         self.scene.add(camera, pose=camera_pose)
 
-        light = pyrender.DirectionalLight(color=np.ones(3), intensity=3)
+        light = pyrender.DirectionalLight(color=np.ones(3), intensity=3.0)
         self.scene.add(light, pose=camera_pose)
 
+
+        self.logger.info('creating renderer')
         self.renderer = pyrender.OffscreenRenderer(512, 512)
+
 
     i = 0
     def render(self):
@@ -78,8 +97,7 @@ class ThreeDimModel(BaseWidget):
         )
 
         # mettre à jour la pose
-        self.scene.set_pose(self.node, pose)
-
+        #self.scene.set_pose(self.node, pose)
         color, depth = self.renderer.render(self.scene)
 
         #frame = cv2.resize(frame, (width, height))

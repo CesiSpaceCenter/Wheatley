@@ -4,7 +4,7 @@ from plugins.base_plugin import BasePlugin
 from plugins.config_ui import ConfigUI, config_types
 from plugins.data.datapoint_config import DataPointConfig
 from plugins.data.data_source import DataSource
-from plugins.data.sources import csv_file, udp
+from plugins.data.sources import csv_file#, udp
 
 
 class Data(BasePlugin):
@@ -13,7 +13,7 @@ class Data(BasePlugin):
     has_changed: bool = False
     sources: dict[str, type[DataSource]] = {
         'CSV file': csv_file.CSV,
-        'UDP': udp.UDP
+        #'UDP': udp.UDP
     }
     source: DataSource | None = None
 
