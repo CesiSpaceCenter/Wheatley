@@ -98,6 +98,7 @@ class ConfigUI:
                         dpg.set_value(path_text, basename(path))
                         callback(None, path, name)
                     dpg.add_button(label='Open file', callback=file_callback)
+                    dpg.add_text(default_value=name)
 
             case 'Select':
                 dpg.add_combo(config_item.config, **item_config)

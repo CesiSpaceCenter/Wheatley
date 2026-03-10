@@ -59,6 +59,12 @@ class Int(Base):
     def parse(self, val: Any):
         return int(val)
 
+class Float(Base):
+    base_default = 0.0
+
+    def parse(self, val: Any):
+        return float(val)
+
 class Bool(Base):
     base_default = False
 
