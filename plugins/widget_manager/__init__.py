@@ -60,6 +60,7 @@ class WidgetManager(BasePlugin):
         window_tag = widget.window
         widget_type = type(widget)
         index = self.widgets.index(widget)
+        widget.cleanup()
         self.widgets[index] = widget_type(window_config, widget_config, window_tag)
         self.widgets[index].ready = True
         self.logger.info(f'Reset widget {widget}, new: {self.widgets[index]}')
@@ -68,6 +69,8 @@ class WidgetManager(BasePlugin):
     def delete_widget(self, widget: BaseWidget):
         """ closes a widget window and remove it from the registry """
         self.logger.info(f'Deleting widget {widget}')
+        widget.ready = False
+        self.widgets.remove(widget)
+        widget.cleanup()
         if dpg.does_item_exist(widget.window):
             dpg.delete_item(widget.window)
-        self.widgets.remove(widget)

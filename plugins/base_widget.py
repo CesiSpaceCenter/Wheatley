@@ -79,3 +79,10 @@ class BaseWidget(BasePlugin):
     def after_viewport(self):
         """ Code to be run just after the viewport has been setup, but before the main loop """
         pass
+
+    def cleanup(self):
+        """ Code to be run when the widget is closed/reset """
+        pass
+
+    def __del__(self):
+        self.cleanup()
