@@ -9,7 +9,8 @@ class StatusTableWidget(BaseWidget):
     name = 'Status table'
 
     config_definition = {
-        '"expression" is a piece of python code that should return 0=Gray, 1=Green, 2=Yellow, 3=Red': config_types.Text(),
+        '"expression" is a piece of python code that should define a variable "color"': config_types.Text(),
+        'The "color" variable should have values gray, green, yellow, red': config_types.Text(),
         'The "data" dict is available to access data values': config_types.Text(),
         'items': config_types.List(config_types.Group({
                 'expression': config_types.Str({'multiline': True}),
@@ -20,40 +21,55 @@ class StatusTableWidget(BaseWidget):
         ),
     }
 
-    colors = [
-        (255, 0, 0),
-        (255, 255, 0),
-        (255, 130, 130),
-        (255, 0, 255),
-        (130, 0, 0),
-        (0, 0, 255),
-        (255, 200, 200),
-        (0, 130, 130),
-    ]
+    colors = {}
 
     def __init__(self, *args):
         super(StatusTableWidget, self).__init__(*args)
         if len(self.config['items']) == 0:
             return
-        cols = len(set(item['x'] for item in self.config['items']))
-        rows = len(set(item['y'] for item in self.config['items']))
+
+        for color_name, color in {
+            'gray': (150, 150, 150),
+            'green': (50, 160, 50),
+            'yellow': (150, 150, 0),
+            'red': (200, 0, 0)
+        }.items():
+            with dpg.theme() as theme:
+                self.colors[color_name] = theme
+                with dpg.theme_component(dpg.mvButton):
+                    dpg.add_theme_color(dpg.mvThemeCol_Button, color)
+                    dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, color)
+
+
+        cols = max(item['x'] for item in self.config['items'])+1
+        rows = max(item['y'] for item in self.config['items'])+1
         print(rows, cols)
 
+        cells: list[list[int]] = []
 
-
-        with dpg.table(parent=self.window, header_row=False, borders_innerV=True, borders_innerH=True) as table:
+        with dpg.table(parent=self.window, header_row=False) as self.table:
+            with dpg.theme() as tight_table_theme:
+                with dpg.theme_component(dpg.mvTable):
+                    dpg.add_theme_style(dpg.mvStyleVar_CellPadding, 1, 1, category=dpg.mvThemeCat_Core)
+                    dpg.bind_item_theme(self.table, tight_table_theme)
             for i in range(cols):
                 dpg.add_table_column()
             for i in range(rows):
+                cells.append([])
                 with dpg.table_row():
                     for j in range(cols):
-                        with dpg.table_cell():
-                            pass
-                            #if index < len(self.config['items']):
+                        cells[i].append(dpg.add_table_cell())
+                        print(j,i)
             for i, item in enumerate(self.config['items']):
-                dpg.highlight_table_cell(table, item['x']+1, item['y']+1, [*self.colors[i], 100])
-                dpg.add_text(item['label'])
-
+                item['compiled_expr'] = compile(item['expression'], item['label'], 'exec')
+                item['button'] = dpg.add_button(label=item['label'], parent=cells[item['y']][item['x']], width=-1)
 
     def render(self):
-        pass
+        for i, item in enumerate(self.config['items']):
+            context = {'color': 'gray'}
+            try:
+                exec(item['compiled_expr'], {}, context)
+            except Exception as e:
+                context['color'] = 'gray'
+            #dpg.highlight_table_cell(self.table, item['y'], item['x'], [*self.colors[e], 100])
+            dpg.bind_item_theme(item['button'], self.colors[context['color']])
