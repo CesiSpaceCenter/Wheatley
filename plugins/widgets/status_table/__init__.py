@@ -35,24 +35,23 @@ class StatusTableWidget(BaseWidget):
         super(StatusTableWidget, self).__init__(*args)
         if len(self.config['items']) == 0:
             return
-        cols = len(set(item['x'] for item in self.config['items']))
-        rows = len(set(item['y'] for item in self.config['items']))
+        cols = max(item['x'] for item in self.config['items'])+1
+        rows = max(item['y'] for item in self.config['items'])+1
         print(rows, cols)
 
-
+        cells = []
 
         with dpg.table(parent=self.window, header_row=False, borders_innerV=True, borders_innerH=True) as table:
             for i in range(cols):
                 dpg.add_table_column()
             for i in range(rows):
+                cells.append([])
                 with dpg.table_row():
                     for j in range(cols):
-                        with dpg.table_cell():
-                            pass
-                            #if index < len(self.config['items']):
+                        cells[i].append(dpg.add_table_cell())
             for i, item in enumerate(self.config['items']):
-                dpg.highlight_table_cell(table, item['x']+1, item['y']+1, [*self.colors[i], 100])
-                dpg.add_text(item['label'])
+                dpg.highlight_table_cell(table, item['y'], item['x'], [*self.colors[i], 100])
+                dpg.add_text(item['label'], parent=cells[item['y']][item['x']])
 
 
     def render(self):
