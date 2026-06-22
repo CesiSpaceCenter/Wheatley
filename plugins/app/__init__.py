@@ -112,7 +112,7 @@ class App(BasePlugin):
 
             with tempfile.NamedTemporaryFile('r', delete_on_close=False) as layout_file:  # open a temporary file
                 dpg.save_init_file(layout_file.name)  # save dpg's init file into the temp file
-                self.logger.debug(f'temp layout file: {layout_file.name}, size: {os.path.getsize(layout_file)}')
+                self.logger.debug(f'temp layout file: {layout_file.name}, size: {os.path.getsize(layout_file.name)}')
                 save_file.writestr('layout.ini', layout_file.read())  # read the tempfile and put its content into the zip
         self.logger.info(f'Saved file {path}')
 
@@ -121,4 +121,8 @@ class App(BasePlugin):
         for window in dpg.get_all_items():
             widget = get_widget(window)
             if widget and widget.ready:
-                widget.render()
+                try:
+                    widget.render()
+                except Exception as e:
+                    self.logger.error(f'Error while rendering widget {widget} {widget.window_config['label']}')
+                    self.logger.exception(e)

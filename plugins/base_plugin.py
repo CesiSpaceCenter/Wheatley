@@ -1,14 +1,35 @@
 from typing import Self
 import logging
+import time
 
-# only used for typing
+# only used for typing & logging initialization
 
+class ThrottlingFilter(logging.Filter):
+    def __init__(self, name='', rate_limit_seconds=5):
+        super().__init__(name)
+        self.rate_limit_seconds = rate_limit_seconds
+        self.last_seen = {}
+
+    def filter(self, record):
+        msg = str(record.msg)
+        now = time.time()
+
+        if msg in self.last_seen:
+            last_logged = self.last_seen[msg]
+            # do not print the message if it was displayed less than rate_limit_seconds ago
+            if now - last_logged < self.rate_limit_seconds:
+                return False
+
+        # if it has been more that rate_limit_seconds, update the last_seen and display the message
+        self.last_seen[msg] = now
+        return True
 
 class BasePlugin:
     plugin: Self  # access to the plugin singleton object
 
     def __init__(self):
         self.logger = logging.getLogger(type(self).__name__)
+        self.logger.addFilter(ThrottlingFilter(rate_limit_seconds=3))
 
     def render(self):
         """ Plugin main loop, code to be run at every render loop """
