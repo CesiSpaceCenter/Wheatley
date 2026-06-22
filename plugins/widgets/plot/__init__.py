@@ -43,32 +43,31 @@ class PlotWidget(BaseWidget):
 
         # create the axis
         for ser in self.config['series']:
-            print('creating series', ser)
             if ser['x'] == '' or ser['y'] == '':
                 continue
 
             data_point = Data.plugin.dictionary[ser['y']]  # get the datapoint config from the datastore
 
-            # every y axis represents a unit
-            if data_point.unit not in self.y_axis:
+            # each axis represent a unit if available, or a datapoint
+            axis_name = data_point.unit if data_point.unit != '' else data_point.name
+
+            if axis_name not in self.y_axis:
                 # dpg limits to 3 y axis, so choose between mvYAxis, mvYAxis2, mvYAxis3
                 if len(self.y_axis) > 2:
                     raise Exception('Reached limit of 3 y axis')
                 axis = [dpg.mvYAxis, dpg.mvYAxis2, dpg.mvYAxis3][len(self.y_axis)]
                 # create the y_axis
-                self.y_axis[data_point.unit] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=data_point.unit)
+                self.y_axis[axis_name] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=axis_name)
 
             # create the series
             self.series[ser['y']] = dpg.add_line_series(
-                parent=self.y_axis[data_point.unit],
+                parent=self.y_axis[axis_name],
                 label=data_point.name + (f' ({data_point.unit})' if data_point.unit else ''),
                 x=[],
                 y=[]
             )
-            print('created series', ser)
 
         self.reload = True
-        print('init done')
 
     last_mouse_x = 0
     mouse_x = 0
@@ -82,14 +81,13 @@ class PlotWidget(BaseWidget):
             if math.isinf(self.mouse_x) or int(self.mouse_x) not in range(int(x_min), int(x_max)):  # mouse is out of the plot
                 self.mouse_x = -1
 
-            #print('mouse move', self.mouse_x)
             for ser in self.config['series']:
                 if ser['y'] == '' or ser['x'] == '' or ser['y'] not in self.config['series']:
                     continue
                 data_x = Data.plugin.data[ser['x']]
                 data_y = Data.plugin.data[ser['y']]
                 if len(data_x) != len(data_y):
-                    print('XY sizes mismatch for', ser['y'])
+                    self.logger.error(f'XY sizes mismatch for {ser['y']}')
                     continue
                 data_point = Data.plugin.dictionary[ser['y']]
                 if self.mouse_x != -1:
@@ -104,28 +102,48 @@ class PlotWidget(BaseWidget):
 
         if not Data.plugin.has_changed and not self.reload:
             return
-        print('render')
 
         # get the datapoit's data from the datastore
         data = Data.plugin.data
+        print('ok')
         if self.config['series'] == '':  # ignore if no datapoint has been configured
             return
 
-        Data.plugin.has_changed = False
+        Data.plugin.has_changed = False ############## AAAAAAAAAAAAAAAAAAAAAH C4EST CA QUI PUE LA MERDE
         self.reload = False
 
         # update the axis limits to fit with new the data
-        #dpg.set_axis_limits(self.x_axis, data_x[0] - 30, data_x[-1])
-        print('populating series')
+        max_x = 0
+        min_y = {k: None for k in self.y_axis.keys()}
+        max_y = {k: None for k in self.y_axis.keys()}
         for ser in self.config['series']:
             data_x = data[ser['x']]
             data_y = data[ser['y']]
             if len(data_x) == 0 or len(data_y) == 0:  # ignore if there is no data yet
                 continue
             if len(data_x) != len(data_y):
-                print('XY sizes mismatch for', ser['y'])
-                return
+                self.logger.error(f'XY sizes mismatch for {ser['y']} (x:{len(data_x)} y:{len(data_y)})')
+                data_y = data_y[-len(data_x):]
 
-            print(len(data_x), len(data_y))
+            if data_x[-1] > max_x:
+                max_x = data_x[-1]
+
+            if min_y[ser['y']] is None:
+                min_y[ser['y']] = min(data_y)
+            else:
+                min_y[ser['y']] = min(min_y[ser['y']], min(data_y))
+
+            if max_y[ser['y']] is None:
+                max_y[ser['y']] = max(data_y)
+            else:
+                max_y[ser['y']] = max(max_y[ser['y']], max(data_y))
 
             dpg.set_value(self.series[ser['y']], [data_x, data_y])  # update the series with the new x and y data
+
+        dpg.set_axis_limits(self.x_axis, max_x-30000, max_x)
+        print(self, max_x)
+        for axis_name, axis in self.y_axis.items():
+            margin = (max_y[axis_name] - min_y[axis_name]) * 0.1
+            #if margin == 0:
+            #    margin = 1
+            dpg.set_axis_limits(axis, min_y[axis_name]-margin, max_y[axis_name]+margin)
