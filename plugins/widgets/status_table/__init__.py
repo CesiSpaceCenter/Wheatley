@@ -3,13 +3,15 @@ from math import ceil
 
 from plugins.base_widget import BaseWidget
 from plugins.config_ui import config_types
+from plugins.data import Data
 
 
 class StatusTableWidget(BaseWidget):
     name = 'Status table'
 
     config_definition = {
-        '"expression" is a piece of python code that should return 0=Gray, 1=Green, 2=Yellow, 3=Red': config_types.Text(),
+        '"expression" is python code': config_types.Text(),
+        'Call red() yellow() green() gray() or color(r,g,b) to set the cell color': config_types.Text(),
         'The "data" dict is available to access data values': config_types.Text(),
         'items': config_types.List(config_types.Group({
                 'expression': config_types.Str({'multiline': True}),
@@ -20,17 +22,6 @@ class StatusTableWidget(BaseWidget):
         ),
     }
 
-    colors = [
-        (255, 0, 0),
-        (255, 255, 0),
-        (255, 130, 130),
-        (255, 0, 255),
-        (130, 0, 0),
-        (0, 0, 255),
-        (255, 200, 200),
-        (0, 130, 130),
-    ]
-
     def __init__(self, *args):
         super(StatusTableWidget, self).__init__(*args)
         if len(self.config['items']) == 0:
@@ -38,21 +29,32 @@ class StatusTableWidget(BaseWidget):
         cols = max(item['x'] for item in self.config['items'])+1
         rows = max(item['y'] for item in self.config['items'])+1
         print(rows, cols)
+        self.cells = []
 
-        cells = []
-
-        with dpg.table(parent=self.window, header_row=False, borders_innerV=True, borders_innerH=True) as table:
+        with dpg.table(parent=self.window, header_row=False, borders_innerV=True, borders_innerH=True) as self.table:
             for i in range(cols):
                 dpg.add_table_column()
             for i in range(rows):
-                cells.append([])
+                self.cells.append([])
                 with dpg.table_row():
                     for j in range(cols):
-                        cells[i].append(dpg.add_table_cell())
+                        self.cells[i].append(dpg.add_table_cell())
             for i, item in enumerate(self.config['items']):
-                dpg.highlight_table_cell(table, item['y'], item['x'], [*self.colors[i], 100])
-                dpg.add_text(item['label'], parent=cells[item['y']][item['x']])
+                dpg.add_text(item['label'], parent=self.cells[item['y']][item['x']])
+                item['code'] = compile(item['expression'], f'status x:{item['x']} y:{item['y']}', 'exec')
 
 
     def render(self):
-        pass
+        for i, item in enumerate(self.config['items']):
+            def color_cell(r, g, b):
+                dpg.highlight_table_cell(self.table, item['y'], item['x'], [r, g, b, 100])
+            exec_locals = {
+                'red': lambda: color_cell(255, 0, 0),
+                'green': lambda: color_cell(0, 255, 0),
+                'yellow': lambda: color_cell(255, 200, 0),
+                'gray': lambda: color_cell(150, 150, 150),
+                'color': color_cell,
+                'data': Data.plugin.data
+            }
+            exec(item['code'], locals=exec_locals)
+            #dpg.highlight_table_cell(self.table, item['y'], item['x'], [*self.colors[i], 100])
