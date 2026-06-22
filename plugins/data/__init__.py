@@ -18,28 +18,29 @@ class Data(BasePlugin):
         #'UDP': udp.UDP
     }
     source: DataSource | None = None
+    history_size = 1000
 
 
     def __init__(self):
         super().__init__()
         with dpg.menu(parent='menubar', label='Data') as menu:
-            config_definition = {
-                'data source': config_types.Select(list(self.sources.keys()))
-            }
-            source_config_ui = None
-            def update_config(conf):  # data source has been changed
-                nonlocal source_config_ui
-                if conf['data source'] == '':
+            def source_changed(_, source):
+                if source == '':
                     self.source = None
                 else:
-                    new_source = self.sources[conf['data source']]
+                    new_source = self.sources[source]
                     if type(self.source) != new_source:
                         self.source = new_source(self.data_changed, self.metadata_changed)
                         # create the config ui
                         dpg.delete_item(source_config_ui, children_only=True)
-                        ConfigUI(source_config_ui, self.source.config_definition, self.source.config, self.source.config_changed)
+                        ConfigUI(source_config_ui, self.source.config_definition, self.source.config,
+                                 self.source.config_changed)
+            dpg.add_combo(label='Data source', items=list(self.sources.keys()), callback=source_changed)
 
-            ConfigUI(menu, config_definition, {'data source': ''}, update_config)
+            def history_size_changed(_, size):
+                self.history_size = size
+            dpg.add_input_int(label='History size', min_value=-1, default_value=self.history_size, callback=history_size_changed)
+
             dpg.add_separator(label='Source config')
             source_config_ui = dpg.add_group()
 
@@ -54,4 +55,6 @@ class Data(BasePlugin):
         # called by the data source class when new metadata is available
         for k, v in data.items():
             self.data[k].extend(v)
+            if len(self.data[k]) > self.history_size:
+                self.data[k] = self.data[k][-self.history_size:]
         self.has_changed = True
