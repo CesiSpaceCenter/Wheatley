@@ -44,13 +44,15 @@ class Teleplot(DataSource):
             if self.serial is not None and self.serial.is_open:
                 line = self.serial.readline().decode().strip()
                 if line.startswith('>'):
-                    variable_name = line.split(':')[0][1:]
-                    value = float(line.split(':')[1])
-                    if variable_name not in self.dictionary:
-                        self.dictionary[variable_name] = DataPointConfig(name=variable_name, type=float, unit='')
-                        self.metadata_changed_callback(self.dictionary)
+                    line = line[1:]  # remove starting ">"
+                    for variable in line.split(','):
+                        variable_name = variable.split(':')[0]
+                        value = float(variable.split(':')[1])
+                        if variable_name not in self.dictionary:
+                            self.dictionary[variable_name] = DataPointConfig(name=variable_name, type=float, unit='')
+                            self.metadata_changed_callback(self.dictionary)
 
-                    self.data_changed_callback({variable_name: [value]})
+                        self.data_changed_callback({variable_name: [value]})
                 else:
                     self.logger.info(f'Log from remote: {line}')
 
