@@ -18,8 +18,6 @@ class PlotWidget(BaseWidget):
         }))
     }
 
-    reload = False
-
     def __init__(self, *args):
         super(PlotWidget, self).__init__(*args)
 
@@ -67,8 +65,6 @@ class PlotWidget(BaseWidget):
                 y=[]
             )
 
-        self.reload = True
-
     last_mouse_x = 0
     mouse_x = 0
     def mouse_event(self, _, mouse):
@@ -100,19 +96,16 @@ class PlotWidget(BaseWidget):
                 else:
                     dpg.configure_item(self.series[ser['y']], label=data_point.name + (f' ({data_point.unit})' if data_point.unit else ''))
 
-        if not Data.plugin.has_changed and not self.reload:
-            return
 
         # get the datapoit's data from the datastore
         data = Data.plugin.data
-        print('ok')
         if self.config['series'] == '':  # ignore if no datapoint has been configured
             return
 
-        Data.plugin.has_changed = False ############## AAAAAAAAAAAAAAAAAAAAAH C4EST CA QUI PUE LA MERDE
-        self.reload = False
+        #Data.plugin.has_changed = False ############## AAAAAAAAAAAAAAAAAAAAAH C4EST CA QUI PUE LA MERDE
 
         # update the axis limits to fit with new the data
+        min_x = 0
         max_x = 0
         min_y = {k: None for k in self.y_axis.keys()}
         max_y = {k: None for k in self.y_axis.keys()}
@@ -125,8 +118,9 @@ class PlotWidget(BaseWidget):
                 self.logger.error(f'XY sizes mismatch for {ser['y']} (x:{len(data_x)} y:{len(data_y)})')
                 data_y = data_y[-len(data_x):]
 
-            if data_x[-1] > max_x:
-                max_x = data_x[-1]
+            min_x = data_x[0]
+
+            max_x = data_x[-1]
 
             if min_y[ser['y']] is None:
                 min_y[ser['y']] = min(data_y)
@@ -140,8 +134,7 @@ class PlotWidget(BaseWidget):
 
             dpg.set_value(self.series[ser['y']], [data_x, data_y])  # update the series with the new x and y data
 
-        dpg.set_axis_limits(self.x_axis, max_x-30000, max_x)
-        print(self, max_x)
+        dpg.set_axis_limits(self.x_axis, min_x, max_x)
         for axis_name, axis in self.y_axis.items():
             margin = (max_y[axis_name] - min_y[axis_name]) * 0.1
             #if margin == 0:

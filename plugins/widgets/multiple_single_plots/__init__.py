@@ -63,13 +63,10 @@ class MultipleSinglePlotsWidget(BaseWidget):
                 })
 
     def render(self):
-        if not Data.plugin.has_changed:
-            return
-
         if not self.config['series']:  # ignore if no datapoint has been configured
             return
 
-        Data.plugin.has_changed = False
+        #Data.plugin.has_changed = False
 
         # get the datapoint's data from the datastore
         data = Data.plugin.data
