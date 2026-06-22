@@ -10,6 +10,7 @@ from plugins.widgets.numeric import NumericWidget
 from plugins.widgets.numeric_bar import NumericBarWidget
 from plugins.widgets.status_table import StatusTableWidget
 from plugins.widgets.multiple_single_plots import MultipleSinglePlotsWidget
+from plugins.widgets.all_data_plots import AllDataPlotsWidget
 from plugins.widgets.threedim_model import ThreeDimModel
 
 # this class is mainly just to store widgets
@@ -22,7 +23,8 @@ class WidgetManager(BasePlugin):
         NumericWidget,
         StatusTableWidget,
         MultipleSinglePlotsWidget,
-        ThreeDimModel
+        ThreeDimModel,
+        AllDataPlotsWidget
     ]
 
     def __init__(self):
@@ -44,10 +46,17 @@ class WidgetManager(BasePlugin):
         window_tag: str | int | None = None
     ):
         """ creates a new widget and adds it to the registry """
-        widget = widget_type(window_config, widget_config, window_tag)
-        self.widgets.append(widget)
-        self.logger.info(f'Creating widget {widget}')
-        widget.ready = True
+        try:
+            widget = widget_type(window_config, widget_config, window_tag)
+            self.widgets.append(widget)
+            self.logger.info(f'Creating widget {widget}')
+            widget.ready = True
+        except Exception as e:
+            self.logger.error(f'Error while creating widget {widget_type.name}')
+            self.logger.exception(e)
+            if window_tag is not None:
+                dpg.delete_item(window_tag, children_only=True)
+                dpg.add_text(f'Error while creating this {widget_type.name}: {repr(e)}', parent=window_tag, color=(255,0,0))
 
     def reset_widget(
         self,

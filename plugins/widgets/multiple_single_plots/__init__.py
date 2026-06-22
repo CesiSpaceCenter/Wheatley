@@ -17,10 +17,9 @@ class MultipleSinglePlotsWidget(BaseWidget):
         }))
     }
 
-    reload = False
-
     def __init__(self, *args):
-        super(MultipleSinglePlotsWidget, self).__init__(*args)
+        if type(self) == MultipleSinglePlotsWidget:  # don't init parent if MultipleSinglePlotsWidget is inherited (all_data_plots widget)
+            super(MultipleSinglePlotsWidget, self).__init__(*args)
 
         self.plots = []
 
@@ -60,22 +59,19 @@ class MultipleSinglePlotsWidget(BaseWidget):
                 'series': series
             })
 
-        self.reload = True
-
     def render(self):
         if not Data.plugin.has_changed and not self.reload:
             return
 
-        # get the datapoit's data from the datastore
-        data = Data.plugin.data
-        if self.config['series'] == '':  # ignore if no datapoint has been configured
+        if not self.config['series']:  # ignore if no datapoint has been configured
             return
 
         Data.plugin.has_changed = False
-        self.reload = False
+
+        # get the datapoint's data from the datastore
+        data = Data.plugin.data
 
         # update the axis limits to fit with new the data
-        #dpg.set_axis_limits(self.x_axis, data_x[0] - 30, data_x[-1])
         for plot in self.plots:
             if len(data[plot['x']]) == 0 or len(data[plot['x']]) == 0:  # ignore if there is no data yet
                 continue
@@ -84,3 +80,6 @@ class MultipleSinglePlotsWidget(BaseWidget):
             data_y = data[plot['y']]
 
             dpg.set_value(plot['series'], [data_x, data_y])  # update the series with the new x and y data
+
+            dpg.set_axis_limits(plot['x_axis'], data_x[0], data_x[-1])
+            dpg.set_axis_limits(plot['y_axis'], min(data_y)-1, max(data_y)+1)
