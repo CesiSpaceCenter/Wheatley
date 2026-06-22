@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, Any
 import serial as pyserial
 import dearpygui.dearpygui as dpg
 from plugins.config_ui import config_types
@@ -23,7 +23,7 @@ class Teleplot(DataSource):
 
     serial: Optional[pyserial.Serial] = None
 
-    def config_changed(self, config: dict[str, any]):
+    def config_changed(self, config: dict[str, Any]):
         self.config = config
 
         self.logger.info(f'Opening serial port {self.config['port']} {self.config['baud']}')

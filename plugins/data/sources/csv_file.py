@@ -1,5 +1,6 @@
 import re
 import os
+from typing import Any
 
 from plugins.config_ui import config_types
 from plugins.data.datapoint_config import DataPointConfig
@@ -22,7 +23,7 @@ class CSV(DataSource):
 
     dictionary = {}
 
-    def config_changed(self, config: dict[str, any]):
+    def config_changed(self, config: dict[str, Any]):
         self.config = config
 
         if not os.path.exists(self.config['file']):

@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+from typing import Any
 from uuid import uuid4
 import logging
 
@@ -10,10 +11,10 @@ class BaseWidget(BasePlugin):
     name: str  # user-friendly name
 
     config_definition: dict[str, config_types.Base] = {}  # widget default configuration & configuration types
-    config: dict[str, any] = {}  # widget current configuration
+    config: dict[str, Any] = {}  # widget current configuration
 
     window_config_definition: dict[str, config_types.Base] = {}  # widget's window default configuration & configuration types
-    window_config: dict[str, any] = {}  # widget's window current configuration (dpg.window keyword arguments)
+    window_config: dict[str, Any] = {}  # widget's window current configuration (dpg.window keyword arguments)
 
     window: int  # widget's window tag
 
@@ -21,7 +22,7 @@ class BaseWidget(BasePlugin):
     # the render() function will not run unless this is true
     ready = False
 
-    def __init__(self, window_config : dict[str, any] = None, widget_config : dict[str, any] = None, window_tag : int = None):
+    def __init__(self, window_config : dict[str, Any] = None, widget_config : dict[str, Any] = None, window_tag : int = None):
         # add some window config for all widget
         self.logger = logging.getLogger(repr(self))
         self.window_config_definition['label'] = config_types.Str()

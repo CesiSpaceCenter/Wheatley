@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+from typing import Any
 from copy import deepcopy
 from os.path import basename
 import filedialpy
@@ -10,7 +11,7 @@ from plugins.config_ui import config_types
 # and initiated multiple times in various places
 
 class ConfigUI:
-    def __init__(self, parent: int | str, definition: dict[str, config_types.Base], default_values: dict[str, any], save_callback: callable):
+    def __init__(self, parent: int | str, definition: dict[str, config_types.Base], default_values: dict[str, Any], save_callback: callable):
         self.logger = logging.getLogger(f'ConfigUI#{hex(id(self))}')
         self.definition = definition
         self.values = deepcopy(default_values)
@@ -27,7 +28,7 @@ class ConfigUI:
         dpg.add_button(parent=parent, label='Save', callback=lambda: save_callback(self.values), width=-1)
 
     @staticmethod
-    def get_input(name: str, value: any, config_item: config_types.Base, callback: callable, parent: int):
+    def get_input(name: str, value: Any, config_item: config_types.Base, callback: callable, parent: int):
         """ creates an input depending on the value's type """
         item_config = dict(  # common config for all inputs
             parent=parent,

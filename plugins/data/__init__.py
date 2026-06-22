@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+from typing import Any
 
 from plugins.base_plugin import BasePlugin
 from plugins.config_ui import ConfigUI, config_types
@@ -8,7 +9,7 @@ from plugins.data.sources import csv_file, teleplot#, udp
 
 
 class Data(BasePlugin):
-    data: dict[str, list[any]] = {}
+    data: dict[str, list[Any]] = {}
     dictionary: dict[str, DataPointConfig] = {}
     has_changed: bool = False
     sources: dict[str, type[DataSource]] = {
@@ -49,7 +50,7 @@ class Data(BasePlugin):
             self.data[k] = []
             self.dictionary[k] = v
 
-    def data_changed(self, data: dict[str, list[any]]):
+    def data_changed(self, data: dict[str, list[Any]]):
         # called by the data source class when new metadata is available
         for k, v in data.items():
             self.data[k].extend(v)

@@ -1,6 +1,6 @@
-import re
 import socket
 from io import TextIOWrapper
+from typing import Any
 
 from plugins.config_ui import config_types
 from plugins.data.datapoint_config import DataPointConfig
@@ -31,7 +31,7 @@ class UDP(DataSource):
     stream: TextIOWrapper | None = None
     connected = False
 
-    def config_changed(self, config: dict[str, any]):
+    def config_changed(self, config: dict[str, Any]):
         self.config = config
         for datapoint in config['datapoints']:
             self.dictionary[datapoint['name']] = DataPointConfig(

@@ -1,4 +1,5 @@
 import dearpygui.dearpygui as dpg
+from typing import Any
 
 from plugins.base_plugin import BasePlugin
 from plugins.base_widget import BaseWidget
@@ -38,8 +39,8 @@ class WidgetManager(BasePlugin):
     def create_widget(
         self,
         widget_type: type[BaseWidget],
-        window_config: dict[str, any] | None = None,
-        widget_config: dict[str, any] | None = None,
+        window_config: dict[str, Any] | None = None,
+        widget_config: dict[str, Any] | None = None,
         window_tag: str | int | None = None
     ):
         """ creates a new widget and adds it to the registry """
@@ -51,8 +52,8 @@ class WidgetManager(BasePlugin):
     def reset_widget(
         self,
         widget: BaseWidget,
-        window_config: dict[str, any] | None = None,
-        widget_config: dict[str, any] | None = None
+        window_config: dict[str, Any] | None = None,
+        widget_config: dict[str, Any] | None = None
     ):
         """ re-initialize a widget with new widget_config and window_config """
         window_config = window_config if window_config is not None else widget.window_config
