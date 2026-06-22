@@ -10,7 +10,6 @@ class MultipleSinglePlotsWidget(BaseWidget):
     config_definition = {
         'plot height': config_types.Int(default=150),
         'auto plot height': config_types.Bool(default=True),
-        'link x axes': config_types.Bool(default=False),
         'series': config_types.List(config_types.Group({
             'x': config_types.DataPoint(),
             'y': config_types.DataPoint()
@@ -29,38 +28,42 @@ class MultipleSinglePlotsWidget(BaseWidget):
             dpg.bind_item_theme(self.window, container_theme)
 
         if self.config['auto plot height']:
-            subplot_height = -1
+            subplot_height = (dpg.get_item_height(self.window) / len(self.config['series'])) * 0.95
         else:
-            subplot_height = len(self.config['series']) * self.config['plot height']
+            subplot_height = self.config['plot height']
 
-        subplot = dpg.add_subplots(len(self.config['series']), 1, parent=self.window, width=-1, height=subplot_height, link_all_x=self.config['link x axes'])
+        def search_callback(_, query):
+            dpg.set_value(self.filter_set, query)
+            print(query, self.filter_set)
+        dpg.add_input_text(label='Search', callback=search_callback, parent=self.window, width=100)
 
-        for i, ser in enumerate(self.config['series']):
-            datapoint_x = Data.plugin.dictionary[ser['x']]
-            datapoint_y = Data.plugin.dictionary[ser['y']]
+        with dpg.filter_set(parent=self.window) as self.filter_set:
+            for i, ser in enumerate(self.config['series']):
+                datapoint_x = Data.plugin.dictionary[ser['x']]
+                datapoint_y = Data.plugin.dictionary[ser['y']]
 
-            plot = dpg.add_plot(parent=subplot, width=-1)
+                plot = dpg.add_plot(parent=self.filter_set, width=-1, height=subplot_height, filter_key=ser['y'])
 
-            x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=plot, label=datapoint_x.name + (f' ({datapoint_x.unit})' if datapoint_x.unit else ''))
-            y_axis = dpg.add_plot_axis(axis=dpg.mvYAxis, parent=plot, label=datapoint_y.name + (f' ({datapoint_y.unit})' if datapoint_y.unit else ''))
+                x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=plot, label=datapoint_x.name + (f' ({datapoint_x.unit})' if datapoint_x.unit else ''))
+                y_axis = dpg.add_plot_axis(axis=dpg.mvYAxis, parent=plot, label=datapoint_y.name + (f' ({datapoint_y.unit})' if datapoint_y.unit else ''))
 
-            series = dpg.add_line_series(
-                parent=y_axis,
-                x=[],
-                y=[]
-            )
+                series = dpg.add_line_series(
+                    parent=y_axis,
+                    x=[],
+                    y=[]
+                )
 
-            self.plots.append({
-                'plot': plot,
-                'x_axis': x_axis,
-                'y_axis': y_axis,
-                'x': ser['x'],
-                'y': ser['y'],
-                'series': series
-            })
+                self.plots.append({
+                    'plot': plot,
+                    'x_axis': x_axis,
+                    'y_axis': y_axis,
+                    'x': ser['x'],
+                    'y': ser['y'],
+                    'series': series
+                })
 
     def render(self):
-        if not Data.plugin.has_changed and not self.reload:
+        if not Data.plugin.has_changed:
             return
 
         if not self.config['series']:  # ignore if no datapoint has been configured
