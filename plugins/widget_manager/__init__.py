@@ -32,6 +32,13 @@ class WidgetManager(BasePlugin):
         self.widgets: list[BaseWidget] = []
 
         with dpg.menu(parent='menubar', label='Widget'):
+            def reset_all_widgets():
+                for widget in self.widgets:
+                    self.reset_widget(widget)
+            dpg.add_menu_item(label='Reload all widgets', callback=reset_all_widgets)
+
+            dpg.add_separator(label='New widget')
+
             def add_widget_callback(_sender, _, widget_type: type[BaseWidget]):
                 self.create_widget(widget_type)
 
