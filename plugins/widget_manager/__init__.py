@@ -66,6 +66,7 @@ class WidgetManager(BasePlugin):
             if window_tag is not None:
                 dpg.delete_item(window_tag, children_only=True)
                 dpg.add_text(f'Error while creating this {widget_type.name}: {repr(e)}', parent=window_tag, color=(255,0,0))
+                dpg.add_button(label='Retry', callback=lambda: self.create_widget(widget_type, window_config, widget_config, window_tag), parent=window_tag)
 
     def reset_widget(
         self,
