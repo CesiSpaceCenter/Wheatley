@@ -20,6 +20,9 @@ class MultipleSinglePlotsWidget(BaseWidget):
         if type(self) == MultipleSinglePlotsWidget:  # don't init parent if MultipleSinglePlotsWidget is inherited (all_data_plots widget)
             super(MultipleSinglePlotsWidget, self).__init__(*args)
 
+        if not self.config['series']:
+            return
+
         self.plots = []
 
         with dpg.theme() as container_theme:
