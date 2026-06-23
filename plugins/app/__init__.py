@@ -119,10 +119,10 @@ class App(BasePlugin):
     def render(self):
         # call the render method for all widgets
         for window in dpg.get_all_items():
-            widget = get_widget(window)
-            if widget and widget.ready:
-                try:
+            try:
+                widget = get_widget(window)
+                if widget and widget.ready:
                     widget.render()
-                except Exception as e:
-                    self.logger.error(f'Error while rendering widget {widget} {widget.window_config['label']}')
-                    self.logger.exception(e)
+            except Exception as e:
+                self.logger.error(f'Error while rendering widget {widget} {widget.window_config['label']}')
+                self.logger.exception(e)

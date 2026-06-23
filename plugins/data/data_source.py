@@ -16,6 +16,7 @@ class DataSource:
         metadata_changed_callback: Callable[[dict[str, DataPointConfig]], None]
     ):
         self.logger = logging.getLogger(type(self).__name__)
+        self.run = True
         self.data_changed_callback = data_changed_callback
         self.metadata_changed_callback = metadata_changed_callback
         self.thread = Thread(target=self.loop, daemon=True)
@@ -26,3 +27,13 @@ class DataSource:
 
     def config_changed(self, config: dict[str, Any]):
         pass
+
+    def close(self):
+        pass
+
+    def stop(self):
+        print('okko')
+        self.logger.info(f'Stopping {type(self).__name__} data source thread')
+        self.run = False
+        self.thread.join(10)
+        self.close()

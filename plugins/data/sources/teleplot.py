@@ -40,7 +40,7 @@ class Teleplot(DataSource):
         Loading.plugin.close()
 
     def loop(self):
-        while True:
+        while self.run:
             if self.serial is not None and self.serial.is_open:
                 line = self.serial.readline().decode().strip()
                 if line.startswith('>'):
@@ -81,3 +81,7 @@ class Teleplot(DataSource):
             self.metadata_changed_callback(self.dictionary)
             self.data_changed_callback(data)
             Loading.plugin.close()
+
+    def close(self):
+        if self.serial is not None:
+            self.serial.close()

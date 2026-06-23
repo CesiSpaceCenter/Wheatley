@@ -29,3 +29,7 @@ class PluginManager:
     def render(self):
         """ Call every plugin's render method """
         self._call_for_all('render')
+
+    def stop(self):
+        """ Call every plugin's stop method """
+        self._call_for_all('stop')

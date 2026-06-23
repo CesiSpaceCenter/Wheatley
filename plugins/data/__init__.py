@@ -25,6 +25,8 @@ class Data(BasePlugin):
         super().__init__()
         with dpg.menu(parent='menubar', label='Data') as menu:
             def source_changed(_, source):
+                if self.source is not None:
+                    self.source.stop()
                 if source == '':
                     self.source = None
                 else:
@@ -58,3 +60,8 @@ class Data(BasePlugin):
             if len(self.data[k]) > self.history_size:
                 self.data[k] = self.data[k][-self.history_size:]
         self.has_changed = True
+
+    def stop(self):
+        if self.source is not None:
+            self.source.stop()
+

@@ -62,5 +62,7 @@ def run():
         dpg.render_dearpygui_frame()  # render dpg
         plugin_manager.render()  # run every plugin's main loop code
 
+    plugin_manager.stop()
+
     dpg.destroy_context()
     logger.info('App closed')
