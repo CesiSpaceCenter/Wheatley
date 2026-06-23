@@ -84,6 +84,3 @@ class BaseWidget(BasePlugin):
     def cleanup(self):
         """ Code to be run when the widget is closed/reset """
         pass
-
-    def __del__(self):
-        self.cleanup()

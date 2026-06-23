@@ -124,5 +124,5 @@ class App(BasePlugin):
                 if widget and widget.ready:
                     widget.render()
             except Exception as e:
-                self.logger.error(f'Error while rendering widget {widget} {widget.window_config['label']}')
+                self.logger.error(f'Error while rendering widget {widget}')
                 self.logger.exception(e)
