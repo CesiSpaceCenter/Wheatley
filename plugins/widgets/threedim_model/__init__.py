@@ -3,7 +3,7 @@ import logging
 logging.getLogger('moderngl_window').setLevel(logging.INFO)
 import math
 import threading
-from queue import Queue, Empty
+import queue
 import time
 from pathlib import Path
 from typing import Optional
@@ -23,10 +23,27 @@ class ThreeDimModel(BaseWidget):
     name = '3D model'
 
     config_definition = {
-        'orientation_x': config_types.DataPoint(),
-        'orientation_y': config_types.DataPoint(),
-        'orientation_z': config_types.DataPoint(),
-        'model': config_types.File(default=r'C:\Users\epuiroux\Documents\dev\Wheatley\model.gltf'),
+        'model': config_types.File(),
+        'rotation': config_types.Group({
+            'x': config_types.DataPoint(),
+            'y': config_types.DataPoint(),
+            'z': config_types.DataPoint()
+        }),
+        'rotation offset': config_types.Group({
+            'x': config_types.Int(),
+            'y': config_types.Int(),
+            'z': config_types.Int()
+        }),
+        'rotation factor': config_types.Group({
+            'x': config_types.Int(),
+            'y': config_types.Int(),
+            'z': config_types.Int()
+        }),
+        'translation': config_types.Group({
+            'x': config_types.Int(),
+            'y': config_types.Int(),
+            'z': config_types.Int()
+        }),
         'max_framerate': config_types.Int(default=60),
         'distance': config_types.Float(default=1),
         'resolution': config_types.Group({
@@ -38,17 +55,10 @@ class ThreeDimModel(BaseWidget):
     gl_run = True
 
     thread: Optional[threading.Thread] = None
-    queue: Optional[Queue] = None
+    queue: Optional[queue.Queue] = None
 
     def __init__(self, *args):
         super(ThreeDimModel, self).__init__(*args)
-
-        """if self.config['orientation_x'] == '':
-            return
-        if self.config['orientation_y'] == '':
-            return
-        if self.config['orientation_z'] == '':
-            return"""
 
         h = self.config['resolution']['height']
         w = self.config['resolution']['width']
@@ -93,29 +103,40 @@ class ThreeDimModel(BaseWidget):
             depth_attachment=ctx.depth_renderbuffer((w, h)),
         )
 
-        i = 0
         last_frame_t = 0
         while self.gl_run:
-            """if self.config['orientation_x'] == '':
+            if not self.config['rotation']['x'] or not self.config['rotation']['y'] or not self.config['rotation']['z']:
                 return
-            if self.config['orientation_y'] == '':
-                return
-            if self.config['orientation_z'] == '':
-                return
-    
-            orientation_x = Data.plugin.dictionary[self.config['orientation_x']]
-            orientation_y = Data.plugin.dictionary[self.config['orientation_y']]
-            orientation_z = Data.plugin.dictionary[self.config['orientation_z']]"""
 
             if time.monotonic() - last_frame_t < 1/self.config['max_framerate']:
                 continue
             last_frame_t = time.monotonic()
 
-            i += 1
-            rx = glm.rotate(glm.radians(i), glm.vec3(1, 0, 0))
-            ry = glm.rotate(glm.radians(i), glm.vec3(0, 1, 0))
-            rz = glm.rotate(glm.radians(i), glm.vec3(0, 0, 1))
-            scene.matrix = rz * ry * rx
+            data = Data.plugin.data
+
+            offset_x = self.config['rotation offset']['x']
+            offset_y = self.config['rotation offset']['y']
+            offset_z = self.config['rotation offset']['z']
+
+            factor_x = self.config['rotation factor']['x']
+            factor_y = self.config['rotation factor']['y']
+            factor_z = self.config['rotation factor']['z']
+
+            orientation_x = data[self.config['rotation']['x']][-1] * factor_x + offset_x
+            orientation_y = data[self.config['rotation']['y']][-1] * factor_y + offset_y
+            orientation_z = data[self.config['rotation']['z']][-1] * factor_z + offset_z
+
+            rx = glm.rotate(glm.radians(orientation_x), glm.vec3(1, 0, 0))
+            ry = glm.rotate(glm.radians(orientation_y), glm.vec3(0, 1, 0))
+            rz = glm.rotate(glm.radians(orientation_z), glm.vec3(0, 0, 1))
+
+            t = glm.translate(glm.vec3(
+                self.config['translation']['x'],
+                self.config['translation']['y'],
+                self.config['translation']['z']
+            ))
+
+            scene.matrix = rz * ry * rx * t
 
             fbo.use()
             ctx.clear(37/255, 37/255, 38/255)
@@ -133,19 +154,23 @@ class ThreeDimModel(BaseWidget):
             frame_float = np.asarray(frame_1d, dtype='f')  # change data type to float
             data = np.true_divide(frame_float, 255)  # normalize pixels
             #self.data = raw
-            self.queue.put(data)
+
+            try:
+                self.queue.put(data, timeout=1)
+            except (queue.Full, queue.ShutDown):  # most likely cleanup() has been called, and render() is not called anymore
+                break
 
     def render(self):
         if self.config['model'] == '':
             return
         if self.thread is None:
-            self.queue = Queue(maxsize=1)
+            self.queue = queue.Queue(maxsize=1)
             self.thread = threading.Thread(target=self.gl_render, daemon=True)
             self.thread.start()
 
         try:
-            data = self.queue.get(block=False)
-        except Empty:
+            data = self.queue.get(block=False, timeout=1)
+        except queue.Empty:
             return
 
         dpg.set_value(self.texture, data)  # update texture
@@ -153,6 +178,6 @@ class ThreeDimModel(BaseWidget):
     def cleanup(self):
         self.gl_run = False
         if self.thread is not None:
-            self.thread.join()
+            self.thread.join(2)
         if self.queue is not None and hasattr(self.queue, 'shutdown'):  # py >= 3.13
             self.queue.shutdown()
