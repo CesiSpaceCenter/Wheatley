@@ -118,11 +118,16 @@ class App(BasePlugin):
 
     def render(self):
         # call the render method for all widgets
-        for window in dpg.get_all_items():
+        for widget in WidgetManager.plugin.widgets:
             try:
-                widget = get_widget(window)
                 if widget and widget.ready:
                     widget.render()
             except Exception as e:
                 self.logger.error(f'Error while rendering widget {widget}')
                 self.logger.exception(e)
+                widget.ready = False  # unready to pause next renders
+                dpg.delete_item(widget.window, children_only=True)
+                dpg.add_text(f'Error while rendering this {widget.name}: {type(e).__name__} {e}', color=(255,0,0), parent=widget.window)
+                def retry():
+                    WidgetManager.plugin.reset_widget(widget)
+                dpg.add_button(label='Retry', callback=retry, parent=widget.window)
