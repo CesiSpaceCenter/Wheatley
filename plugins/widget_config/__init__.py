@@ -28,23 +28,28 @@ class WidgetConfig(BasePlugin):
         ConfigUI(self.window, self.active_widget.config_definition, self.active_widget.config, lambda conf: callback(None, conf))
 
     def render(self):
-        # udate the active widget
+        # update the active widget
         active_window = dpg.get_active_window()
-        if active_window == self.window:  # abort if the selected window is the widget config window
-            return
 
-        active_widget = None
-        for widget in WidgetManager.plugin.widgets:
-            if widget.window == active_window:  # selected window is a widget
-                active_widget = widget
-                break
-
-        if not active_widget and self.active_widget is not None:  # selected window is not a widget
+        # selected widget's window doesn't exist anymore
+        if self.active_widget is not None and not dpg.does_item_exist(self.active_widget.window):
             self.active_widget = None
             dpg.delete_item(self.window, children_only=True)
-        elif active_widget != self.active_widget:
-            self.logger.debug(f'New widget selected {active_widget}, previous: {self.active_widget}')
-            self.active_widget = active_widget
+        elif active_window == self.window:  # abort if the selected window is the widget config window
+            return
+
+        new_active_widget = None
+        for widget in WidgetManager.plugin.widgets:
+            if widget.window == active_window:  # selected window is a widget
+                new_active_widget = widget
+                break
+
+        if new_active_widget is None and self.active_widget is not None:  # selected window is not a widget
+            self.active_widget = None
+            dpg.delete_item(self.window, children_only=True)
+        elif new_active_widget != self.active_widget:  # a new widget is selected
+            self.logger.debug(f'New widget selected {new_active_widget}, previous: {self.active_widget}')
+            self.active_widget = new_active_widget
             self.new_widget_config = {}
             self.new_window_config = {}
             self.render_config_window()
