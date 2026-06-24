@@ -260,3 +260,23 @@ class File(Base):
 
             dpg.add_button(label='Open file', callback=file_callback)
             dpg.add_text(default_value=name)
+
+
+class Color(Base):
+    """
+    A RGB color to choose with a color picker
+    """
+    base_default = (0, 0, 0)
+
+    def parse(self, val: list):
+        return (val[0]*255, val[1]*255, val[2]*255)
+
+    def ui(self, parent, name: str, value: tuple, callback):
+        dpg.add_color_edit(
+            parent=parent,
+            label=name,
+            default_value=value,
+            callback=callback,
+            user_data=name,
+            no_alpha=True
+        )

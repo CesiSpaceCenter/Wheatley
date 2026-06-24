@@ -10,7 +10,8 @@ class TextWidget(BaseWidget):
     config_definition = {
         'text': config_types.Str(),
         'bullet': config_types.Bool(default=False),
-        'big': config_types.Bool(default=False)
+        'big': config_types.Bool(default=False),
+        'color': config_types.Color()
     }
 
     def __init__(self, *args):
@@ -18,7 +19,8 @@ class TextWidget(BaseWidget):
         self.text = dpg.add_text(
             default_value=self.config['text'],
             parent=self.window,
-            bullet=self.config['bullet']
+            bullet=self.config['bullet'],
+            color=self.config['color']
         )
         if self.config['big']:
             dpg.bind_item_font(self.text, Fonts.plugin.big_bold)
