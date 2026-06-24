@@ -34,6 +34,8 @@ class BaseWidget(BasePlugin):
         self.window_config_definition['no_scrollbar'] = config_types.Bool(default=False)
         self.window_config_definition['no_scroll_with_mouse'] = config_types.Bool(default=False)
 
+        self.timings: list[float] = []
+
         # reset config & window config
         self.config = {}
         self.window_config = {}

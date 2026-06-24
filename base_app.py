@@ -1,4 +1,6 @@
 import logging
+import time
+
 import dearpygui.dearpygui as dpg
 
 # the app will continuously restart while this is True
@@ -59,8 +61,13 @@ def run():
     logger.info('App ready')
 
     while dpg.is_dearpygui_running():  # main render loop
+        s = time.monotonic()
         dpg.render_dearpygui_frame()  # render dpg
         plugin_manager.render()  # run every plugin's main loop code
+        plugin_manager.timings.append(time.monotonic() - s)
+        if len(plugin_manager.timings) < 50:
+            continue
+        plugin_manager.timings = plugin_manager.timings[1:50]
 
     plugin_manager.stop()
 

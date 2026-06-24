@@ -1,6 +1,7 @@
 import os
 import json
 import tempfile
+import time
 
 import dearpygui.dearpygui as dpg
 import filedialpy
@@ -119,7 +120,12 @@ class App(BasePlugin):
         for widget in WidgetManager.plugin.widgets:
             try:
                 if widget and widget.ready:
+                    s = time.monotonic()
                     widget.render()
+                    widget.timings.append(time.monotonic()-s)
+                    if len(widget.timings) < 50:
+                        continue
+                    widget.timings = widget.timings[1:50]
             except Exception as e:
                 self.logger.error(f'Error while rendering widget {widget}')
                 self.logger.exception(e)

@@ -13,6 +13,7 @@ from plugins.widgets.multiple_single_plots import MultipleSinglePlotsWidget
 from plugins.widgets.all_data_plots import AllDataPlotsWidget
 from plugins.widgets.threedim_model import ThreeDimModel
 from plugins.widgets.data_table import DataTableWidget
+from plugins.widgets.debug import DebugWidget
 
 # this class is mainly just to store widgets
 
@@ -26,7 +27,8 @@ class WidgetManager(BasePlugin):
         MultipleSinglePlotsWidget,
         ThreeDimModel,
         AllDataPlotsWidget,
-        DataTableWidget
+        DataTableWidget,
+        DebugWidget
     ]
 
     def __init__(self, *args):

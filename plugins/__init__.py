@@ -1,8 +1,11 @@
 import logging
+import time
+
 from plugins.base_plugin import BasePlugin
 
 class PluginManager:
     plugins: list[BasePlugin] = []
+    timings: list[float] = []
 
     def __init__(self):
         self.logger = logging.getLogger('PluginManager')
@@ -28,7 +31,13 @@ class PluginManager:
 
     def render(self):
         """ Call every plugin's render method """
-        self._call_for_all('render')
+        for plugin in self.plugins:
+            s = time.monotonic()
+            plugin.render()
+            plugin.timings.append(time.monotonic()-s)
+            if len(plugin.timings) < 50:
+                continue
+            plugin.timings = plugin.timings[1:50]
 
     def stop(self):
         """ Call every plugin's stop method """
