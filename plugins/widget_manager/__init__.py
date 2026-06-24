@@ -52,21 +52,25 @@ class WidgetManager(BasePlugin):
         widget_type: type[BaseWidget],
         window_config: dict[str, Any] | None = None,
         widget_config: dict[str, Any] | None = None,
-        window_tag: str | int | None = None
+        window_tag: int | None = None
     ):
         """ creates a new widget and adds it to the registry """
         try:
-            widget = widget_type(window_config, widget_config, window_tag)
+            widget = widget_type(self, window_config, widget_config, window_tag)
             self.widgets.append(widget)
             self.logger.info(f'Creating widget {widget}')
             widget.ready = True
         except Exception as e:
             self.logger.error(f'Error while creating widget {widget_type.name}')
             self.logger.exception(e)
-            if window_tag is not None:
-                dpg.delete_item(window_tag, children_only=True)
-                dpg.add_text(f'Error while creating this {widget_type.name}: {type(e).__name__} {str(e)}', parent=window_tag, color=(255,0,0))
-                dpg.add_button(label='Retry', callback=lambda: self.create_widget(widget_type, window_config, widget_config, window_tag), parent=window_tag)
+            if window_tag is None:
+                # sketch, but works
+                # we don't have the window_tag that the widget created, because __init__ failed
+                # so we get the last created window
+                window_tag = [w for w in dpg.get_windows() if dpg.get_item_type(w) == 'mvAppItemType::mvWindowAppItem'][-1]
+            dpg.delete_item(window_tag, children_only=True)
+            dpg.add_text(f'Error while creating this {widget_type.name}: {type(e).__name__} {str(e)}', parent=window_tag, color=(255,0,0))
+            dpg.add_button(label='Retry', callback=lambda: self.create_widget(widget_type, window_config, widget_config, window_tag), parent=window_tag)
 
     def reset_widget(
         self,
@@ -81,7 +85,7 @@ class WidgetManager(BasePlugin):
         widget_type = type(widget)
         index = self.widgets.index(widget)
         widget.cleanup()
-        self.widgets[index] = widget_type(window_config, widget_config, window_tag)
+        self.widgets[index] = widget_type(self, window_config, widget_config, window_tag)
         self.widgets[index].ready = True
         self.logger.info(f'Reset widget {widget}, new: {self.widgets[index]}')
         return self.widgets[index]

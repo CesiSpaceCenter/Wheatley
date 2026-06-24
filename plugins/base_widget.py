@@ -1,13 +1,17 @@
 import dearpygui.dearpygui as dpg
-from typing import Any
+from typing import Any, TYPE_CHECKING
 from uuid import uuid4
 import logging
 
 from plugins.base_plugin import BasePlugin
 import plugins.config_ui.config_types as config_types
+if TYPE_CHECKING:
+    from plugins.widget_manager import WidgetManager
 
 
 class BaseWidget(BasePlugin):
+    widget_manager: WidgetManager
+
     name: str  # user-friendly name
 
     config_definition: dict[str, config_types.Base] = {}  # widget default configuration & configuration types
@@ -22,7 +26,8 @@ class BaseWidget(BasePlugin):
     # the render() function will not run unless this is true
     ready = False
 
-    def __init__(self, window_config : dict[str, Any] = None, widget_config : dict[str, Any] = None, window_tag : int = None):
+    def __init__(self, widget_manager: WidgetManager, window_config : dict[str, Any] = None, widget_config : dict[str, Any] = None, window_tag : int = None):
+        self.widget_manager = widget_manager
         # add some window config for all widget
         self.logger = logging.getLogger(repr(self))
         self.window_config_definition['label'] = config_types.Str()

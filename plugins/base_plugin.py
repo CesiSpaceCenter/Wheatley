@@ -28,12 +28,13 @@ class ThrottlingFilter(logging.Filter):
 
 class BasePlugin:
     plugin: Self  # access to the plugin singleton object
-    manager: PluginManager
+    plugin_manager: PluginManager
 
     def __init__(self, manager: PluginManager):
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.addFilter(ThrottlingFilter(rate_limit_seconds=3))
-        self.manager = manager
+        self.plugin_manager = manager
+        self.timings: list[float] = []
 
     def render(self):
         """ Plugin main loop, code to be run at every render loop """
