@@ -1,5 +1,4 @@
 import dearpygui.dearpygui as dpg
-from math import ceil
 
 from plugins.base_widget import BaseWidget
 from plugins.config_ui import config_types
@@ -23,7 +22,7 @@ class StatusTableWidget(BaseWidget):
     }
 
     def __init__(self, *args):
-        super(StatusTableWidget, self).__init__(*args)
+        super().__init__(*args)
         if len(self.config['items']) == 0:
             return
         cols = max(item['x'] for item in self.config['items'])+1

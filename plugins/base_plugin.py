@@ -1,6 +1,8 @@
-from typing import Self
+from typing import Self, TYPE_CHECKING
 import logging
 import time
+if TYPE_CHECKING:
+    from plugins import PluginManager
 
 # only used for typing & logging initialization
 
@@ -26,10 +28,12 @@ class ThrottlingFilter(logging.Filter):
 
 class BasePlugin:
     plugin: Self  # access to the plugin singleton object
+    manager: PluginManager
 
-    def __init__(self):
+    def __init__(self, manager: PluginManager):
         self.logger = logging.getLogger(type(self).__name__)
         self.logger.addFilter(ThrottlingFilter(rate_limit_seconds=3))
+        self.manager = manager
 
     def render(self):
         """ Plugin main loop, code to be run at every render loop """

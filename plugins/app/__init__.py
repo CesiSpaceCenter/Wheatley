@@ -11,8 +11,6 @@ from plugins.base_plugin import BasePlugin
 from plugins.loading import Loading
 from plugins.widget_manager import WidgetManager
 
-from utils import get_widget
-
 # the "app" is the layout configuration created by the user
 # this plugin is responsible for loading an app file (creating all of the coresponding widgets)
 # and saving an app file (listing all of the widgets)
@@ -21,8 +19,8 @@ from utils import get_widget
 class App(BasePlugin):
     current_file = None
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         dpg.configure_app(docking=True, docking_space=True)
         with dpg.menu(parent='menubar', label='App'):  # add an "App" menu to the menubar
             dpg.add_menu_item(label='Open an app file', callback=self.open_file_dialog)

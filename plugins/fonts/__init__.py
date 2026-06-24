@@ -5,8 +5,8 @@ from plugins.base_plugin import BasePlugin
 
 
 class Fonts(BasePlugin):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         with dpg.font_registry():
             basepath = path.dirname(__file__)
             self.default = dpg.add_font(path.join(basepath, 'neon.otf'), 12)

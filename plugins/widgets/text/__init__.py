@@ -14,7 +14,7 @@ class TextWidget(BaseWidget):
     }
 
     def __init__(self, *args):
-        super(TextWidget, self).__init__(*args)
+        super().__init__(*args)
         self.text = dpg.add_text(
             default_value=self.config['text'],
             parent=self.window,

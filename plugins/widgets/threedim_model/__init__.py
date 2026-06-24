@@ -58,7 +58,7 @@ class ThreeDimModel(BaseWidget):
     queue: Optional[queue.Queue] = None
 
     def __init__(self, *args):
-        super(ThreeDimModel, self).__init__(*args)
+        super().__init__(*args)
 
         h = self.config['resolution']['height']
         w = self.config['resolution']['width']

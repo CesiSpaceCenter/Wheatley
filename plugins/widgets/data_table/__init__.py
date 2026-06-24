@@ -1,8 +1,6 @@
 import dearpygui.dearpygui as dpg
 
-from plugins import BasePlugin
 from plugins.base_widget import BaseWidget
-from plugins.config_ui import config_types
 from plugins.data import Data
 
 
@@ -10,7 +8,7 @@ class DataTableWidget(BaseWidget):
     name = 'Data table'
 
     def __init__(self, *args):
-        super(DataTableWidget, self).__init__(*args)
+        super().__init__(*args)
 
         self.plots = []
 

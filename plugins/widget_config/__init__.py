@@ -6,8 +6,8 @@ from plugins.config_ui import ConfigUI
 from plugins.widget_manager import WidgetManager
 
 class WidgetConfig(BasePlugin):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         self.window = dpg.add_window(label='Widget config', width=300, height=600)
         self.active_widget: BaseWidget = None
         # the next 2 dict will store the temporary new config. they are updated in real-time with the inputs

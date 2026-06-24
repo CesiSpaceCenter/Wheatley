@@ -2,7 +2,7 @@ import dearpygui.dearpygui as dpg
 from typing import Any
 
 from plugins.base_plugin import BasePlugin
-from plugins.config_ui import ConfigUI, config_types
+from plugins.config_ui import ConfigUI
 from plugins.data.datapoint_config import DataPointConfig
 from plugins.data.data_source import DataSource
 from plugins.data.sources import csv_file, teleplot#, udp
@@ -21,8 +21,8 @@ class Data(BasePlugin):
     history_size = 1000
 
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         with dpg.menu(parent='menubar', label='Data') as menu:
             def source_changed(_, source):
                 if self.source is not None:

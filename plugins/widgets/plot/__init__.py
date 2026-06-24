@@ -19,7 +19,7 @@ class PlotWidget(BaseWidget):
     }
 
     def __init__(self, *args):
-        super(PlotWidget, self).__init__(*args)
+        super().__init__(*args)
 
         with dpg.theme() as container_theme:
             with dpg.theme_component(dpg.mvWindowAppItem):

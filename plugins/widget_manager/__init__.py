@@ -29,8 +29,8 @@ class WidgetManager(BasePlugin):
         DataTableWidget
     ]
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args):
+        super().__init__(*args)
         self.widgets: list[BaseWidget] = []
 
         with dpg.menu(parent='menubar', label='Widget'):

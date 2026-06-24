@@ -17,7 +17,7 @@ class NumericWidget(BaseWidget):
     }
 
     def __init__(self, *args):
-        super(NumericWidget, self).__init__(*args)
+        super().__init__(*args)
 
         if self.config['data_point'] == '':
             return
