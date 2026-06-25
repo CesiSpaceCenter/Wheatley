@@ -27,7 +27,10 @@ class DebugWidget(BaseWidget):
 
         self.widgets_tree = dpg.add_tree_node(parent=self.window, label='Widgets')
 
-        dpg.add_button(label='Open DPG debug tool', parent=self.window, callback=dpg.show_item_registry)
+        dpg.add_button(label='Open DPG item registry', parent=self.window, callback=dpg.show_item_registry)
+        dpg.add_button(label='Open DPG metrics tool', parent=self.window, callback=dpg.show_metrics)
+        dpg.add_button(label='Open DPG debug tool', parent=self.window, callback=dpg.show_debug)
+        dpg.add_button(label='Open DPG about tool', parent=self.window, callback=dpg.show_about)
 
     def render(self):
         dpg.set_value(self.widget_count, f'Widgets count: {len(self.widget_manager.widgets)}')
@@ -39,7 +42,6 @@ class DebugWidget(BaseWidget):
         new_widgets = set(self.widget_manager.widgets) - set(self.widget_nodes.keys())
         for widget, node in list(self.widget_nodes.items()):
             if widget in deleted_widgets:
-                print(widget)
                 dpg.delete_item(node['root'])
                 del self.widget_nodes[widget]
         for widget in new_widgets:

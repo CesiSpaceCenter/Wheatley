@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import dearpygui.dearpygui as dpg
 from typing import Any, TYPE_CHECKING
 from uuid import uuid4
@@ -33,6 +35,9 @@ class BaseWidget(BasePlugin):
         self.window_config_definition['label'] = config_types.Str()
         self.window_config_definition['no_scrollbar'] = config_types.Bool(default=False)
         self.window_config_definition['no_scroll_with_mouse'] = config_types.Bool(default=False)
+
+        widget_config = deepcopy(widget_config)
+        window_config = deepcopy(window_config)
 
         self.timings: list[float] = []
 

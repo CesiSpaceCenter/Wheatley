@@ -37,7 +37,6 @@ class MultipleSinglePlotsWidget(BaseWidget):
 
         def search_callback(_, query):
             dpg.set_value(self.filter_set, query)
-            print(query, self.filter_set)
         dpg.add_input_text(label='Search', callback=search_callback, parent=self.window, width=100)
 
         with dpg.filter_set(parent=self.window) as self.filter_set:
