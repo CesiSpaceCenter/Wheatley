@@ -50,17 +50,20 @@ class List(Base):
                     callback(None, value, name)
 
                 item_group = dpg.add_group(parent=list_group, horizontal=True)
-                #ConfigUI.get_input(str(i), item_value, subitem_type, list_callback, item_group)
-                #(name: str, value: Any, config_item: config_types.Base, callback: callable, parent: int):
-                self.config.ui(item_group, str(i), item_value, list_callback)  # self.config is the subitem config type
-
                 def remove_item_callback(_a, _b, index):
                     # remove the item and rebuild the ui
                     del value[index]
                     callback(None, value, name)
                     build_ui()
 
-                dpg.add_button(label='Remove', callback=remove_item_callback, user_data=int(i), parent=item_group)
+                with dpg.theme() as item_theme:
+                    with dpg.theme_component(dpg.mvButton):
+                        btn = dpg.add_button(label='×', callback=remove_item_callback, user_data=int(i), parent=item_group)
+                        dpg.add_theme_color(dpg.mvThemeCol_Button, (255, 0, 0, 120), category=dpg.mvThemeCat_Core)
+                    dpg.bind_item_theme(btn, item_theme)
+                #ConfigUI.get_input(str(i), item_value, subitem_type, list_callback, item_group)
+                #(name: str, value: Any, config_item: config_types.Base, callback: callable, parent: int):
+                self.config.ui(item_group, str(i), item_value, list_callback)  # self.config is the subitem config type
         build_ui()
 
         def add_item_callback():

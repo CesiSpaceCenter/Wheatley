@@ -45,8 +45,14 @@ class StatusTableWidget(BaseWidget):
                     for j in range(cols):
                         self.cells[i].append(dpg.add_table_cell())
             for i, item in enumerate(self.config['items']):
-                self.texts[i] = dpg.add_text(item['label'], parent=self.cells[item['y']][item['x']])
+                self.texts[i] = dpg.add_button(label=item['label'], parent=self.cells[item['y']][item['x']], enabled=False, width=-1)
                 self.code[i] = compile(item['expression'], f'status x:{item['x']} y:{item['y']}', 'exec')
+
+        with dpg.theme() as container_theme:
+            with dpg.theme_component(dpg.mvTable):
+                dpg.add_theme_color(dpg.mvThemeCol_Button, (0, 0, 0, 0))
+                dpg.add_theme_color(dpg.mvThemeCol_ButtonHovered, (0, 0, 0, 0))
+            dpg.bind_item_theme(self.table, container_theme)
 
     def render(self):
         for i, item in enumerate(self.config['items']):
@@ -65,4 +71,3 @@ class StatusTableWidget(BaseWidget):
                 'data': Data.plugin.data
             }
             exec(self.code[i], locals=exec_locals)
-            #dpg.highlight_table_cell(self.table, item['y'], item['x'], [*self.colors[i], 100])
