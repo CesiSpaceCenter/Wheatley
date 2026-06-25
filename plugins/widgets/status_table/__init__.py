@@ -27,7 +27,8 @@ class StatusTableWidget(BaseWidget):
             return
         cols = max(item['x'] for item in self.config['items'])+1
         rows = max(item['y'] for item in self.config['items'])+1
-        self.cells = []
+        self.cells: list[list[int]] = []
+        self.texts = {}
         self.code = {}
 
         with dpg.theme() as container_theme:
@@ -44,18 +45,22 @@ class StatusTableWidget(BaseWidget):
                     for j in range(cols):
                         self.cells[i].append(dpg.add_table_cell())
             for i, item in enumerate(self.config['items']):
-                dpg.add_text(item['label'], parent=self.cells[item['y']][item['x']])
+                self.texts[i] = dpg.add_text(item['label'], parent=self.cells[item['y']][item['x']])
                 self.code[i] = compile(item['expression'], f'status x:{item['x']} y:{item['y']}', 'exec')
 
     def render(self):
         for i, item in enumerate(self.config['items']):
-            def color_cell(r, g, b):
+            def color_cell(r: int, g: int, b: int):
                 dpg.highlight_table_cell(self.table, item['y'], item['x'], [r, g, b, 100])
+            def set_text(text: str):
+                dpg.set_value(self.texts[i], text)
+
             exec_locals = {
                 'red': lambda: color_cell(255, 0, 0),
                 'green': lambda: color_cell(0, 255, 0),
                 'yellow': lambda: color_cell(255, 200, 0),
                 'gray': lambda: color_cell(150, 150, 150),
+                'text': set_text,
                 'color': color_cell,
                 'data': Data.plugin.data
             }
