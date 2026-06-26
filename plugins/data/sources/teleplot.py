@@ -3,7 +3,7 @@ from typing import Optional, Any
 import serial as pyserial
 import dearpygui.dearpygui as dpg
 from plugins.config_ui import config_types
-from plugins.data.datapoint_config import DataPointConfig
+from plugins.data.datapoint_config import DataPoint
 from plugins.data.data_source import DataSource
 from plugins.loading import Loading
 
@@ -49,7 +49,7 @@ class Teleplot(DataSource):
                         variable_name = variable.split(':')[0]
                         value = float(variable.split(':')[1])
                         if variable_name not in self.dictionary:
-                            self.dictionary[variable_name] = DataPointConfig(name=variable_name, type=float, unit='')
+                            self.dictionary[variable_name] = DataPoint(name=variable_name, type=float, unit='')
                             self.metadata_changed_callback(self.dictionary)
 
                         self.data_changed_callback({variable_name: [value]})

@@ -1,3 +1,5 @@
+import time
+
 import dearpygui.dearpygui as dpg
 
 from plugins.base_widget import BaseWidget
@@ -41,8 +43,20 @@ class DataTableWidget(BaseWidget):
                     with dpg.table_cell():
                         self.rows[item.name]['plot'] = dpg.add_simple_plot(width=-1)
 
+    ts = []
     def render(self):
         for key, row in self.rows.items():
-            dpg.set_value(row['value'], round(Data.plugin.data[key][-1], 2))
-            dpg.set_value(row['plot'], Data.plugin.data[key])
+            #print('aaaaaaa', time.monotonic()-Data.plugin.dictionary[key][0][0])
+            #d = Data.plugin.dictionary[key][-1:]
+            #print(f'delta_t={round(d[0][0]-d[-1][0], 1)}\t start_t={round(time.monotonic()-d[0][0],1)}s ago\t stop_t={round(time.monotonic()-d[-1][0],1)}s ago\t len={len(d)}')
+
+            s = time.monotonic_ns()
+            dpg.set_value(row['value'], round(Data.plugin.dictionary[key][-1][1], 2))
+            self.ts.append(time.monotonic_ns()-s)
+            if len(self.ts) == 1000:
+                print(sum(self.ts)/1000)
+                self.ts = []
+
+            dpg.set_value(row['plot'], [d[1] for d in Data.plugin.dictionary[key][:]])
+
 

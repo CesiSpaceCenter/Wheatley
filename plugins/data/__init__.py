@@ -3,17 +3,17 @@ from typing import Any
 
 from plugins.base_plugin import BasePlugin
 from plugins.config_ui import ConfigUI
-from plugins.data.datapoint_config import DataPointConfig
+from plugins.data.datapoint_config import DataPoint
 from plugins.data.data_source import DataSource
-from plugins.data.sources import csv_file, teleplot#, udp
+from plugins.data.sources import teleplot#, udp, csvfile
 
 
 class Data(BasePlugin):
-    data: dict[str, list[Any]] = {}
-    dictionary: dict[str, DataPointConfig] = {}
+    #data: dict[str, list[Any]] = {}
+    dictionary: dict[str, DataPoint] = {}
     has_changed: bool = False
     sources: dict[str, type[DataSource]] = {
-        'CSV file': csv_file.CSV,
+        #'CSV file': csv_file.CSV,
         'Teleplot': teleplot.Teleplot
         #'UDP': udp.UDP
     }
@@ -46,19 +46,18 @@ class Data(BasePlugin):
             dpg.add_separator(label='Source config')
             source_config_ui = dpg.add_group()
 
-    def metadata_changed(self, metadata: dict[str, DataPointConfig]):
+    def metadata_changed(self, metadata: dict[str, DataPoint]):
         # called by the data source class when new metadata is available
         self.logger.info(f'New metadata {metadata}')
         for k, v in metadata.items():
-            self.data[k] = []
             self.dictionary[k] = v
 
     def data_changed(self, data: dict[str, list[Any]]):
         # called by the data source class when new metadata is available
         for k, v in data.items():
-            self.data[k].extend(v)
-            if len(self.data[k]) > self.history_size:
-                self.data[k] = self.data[k][-self.history_size:]
+            self.dictionary[k].append(v)
+            #if len(self.data[k]) > self.history_size:
+            #    self.data[k] = self.data[k][-self.history_size:]
         self.has_changed = True
 
     def stop(self):

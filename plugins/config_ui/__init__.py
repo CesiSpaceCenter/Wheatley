@@ -1,8 +1,6 @@
 import dearpygui.dearpygui as dpg
 from typing import Any
-from copy import deepcopy
 import logging
-import copy
 
 from plugins.config_ui import config_types
 

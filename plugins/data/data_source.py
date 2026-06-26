@@ -2,7 +2,7 @@ from threading import Thread
 from typing import Any
 import logging
 from plugins.config_ui import config_types
-from plugins.data import DataPointConfig
+from plugins.data.datapoint_config import DataPoint
 from collections.abc import Callable
 
 
@@ -13,7 +13,7 @@ class DataSource:
     def __init__(
         self,
         data_changed_callback: Callable[[dict[str, list[Any]]], None],
-        metadata_changed_callback: Callable[[dict[str, DataPointConfig]], None]
+        metadata_changed_callback: Callable[[dict[str, DataPoint]], None]
     ):
         self.logger = logging.getLogger(type(self).__name__)
         self.run = True
@@ -32,7 +32,6 @@ class DataSource:
         pass
 
     def stop(self):
-        print('okko')
         self.logger.info(f'Stopping {type(self).__name__} data source thread')
         self.run = False
         self.thread.join(10)
