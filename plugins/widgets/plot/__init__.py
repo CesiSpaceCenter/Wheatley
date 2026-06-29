@@ -1,5 +1,3 @@
-import bisect
-
 import dearpygui.dearpygui as dpg
 import math
 
@@ -12,10 +10,7 @@ class PlotWidget(BaseWidget):
     name = 'Plot'
 
     config_definition = {
-        'series': config_types.List(config_types.Group({
-            'x': config_types.DataPoint(),
-            'y': config_types.DataPoint()
-        }))
+        'series': config_types.List(config_types.DataPoint())
     }
 
     def __init__(self, *args):
@@ -31,18 +26,19 @@ class PlotWidget(BaseWidget):
         dpg.add_plot_legend(parent=self.plot)
 
         # horizontal axis
-        self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot)
+        self.x_axis_relative = dpg.add_plot_axis(axis=dpg.mvXAxis2, parent=self.plot, no_gridlines=True)
+        self.x_axis = dpg.add_plot_axis(axis=dpg.mvXAxis, parent=self.plot, no_tick_labels=True)
 
         self.series = {}  # dict that will store every dpg's Series
         self.tags = {}  # dpg tooltip that display the point coordinates near the mouse
         self.y_axis = {}  # dict that will store every dpg's YAxis
 
         # create the axis
-        for ser in self.config['series']:
-            if ser['x'] == '' or ser['y'] == '':
+        for data_point_name in self.config['series']:
+            if data_point_name == '':
                 continue
 
-            data_point = Data.plugin.dictionary[ser['y']]  # get the datapoint config from the datastore
+            data_point = Data.plugin.dictionary[data_point_name]  # get the datapoint config from the datastore
 
             # each axis represent a unit if available, or a datapoint
             axis_name = data_point.unit if data_point.unit != '' else data_point.name
@@ -56,7 +52,7 @@ class PlotWidget(BaseWidget):
                 self.y_axis[axis_name] = dpg.add_plot_axis(axis=axis, parent=self.plot, label=axis_name)
 
             # create the series
-            self.series[ser['y']] = dpg.add_line_series(
+            self.series[data_point_name] = dpg.add_line_series(
                 parent=self.y_axis[axis_name],
                 label=data_point.name + (f' ({data_point.unit})' if data_point.unit else ''),
                 x=[],
@@ -70,35 +66,33 @@ class PlotWidget(BaseWidget):
         #Data.plugin.has_changed = False ############## AAAAAAAAAAAAAAAAAAAAAH C4EST CA QUI PUE LA MERDE
 
         # update the axis limits to fit with new the data
-        min_x = 0
-        min_y = {k: None for k in self.y_axis.keys()}
-        max_y = {k: None for k in self.y_axis.keys()}
-        for ser in self.config['series']:
-            #data_x = data[ser['x']]
-            data = Data.plugin.dictionary[ser['y']][:]
-            data_x = [round(p[0],2) for p in data]
-            data_y = [p[1] for p in data]
-            if len(data_x) == 0 or len(data_y) == 0:  # ignore if there is no data yet
+        min_x = math.nan
+        max_x = math.nan
+        min_y = {}
+        max_y = {}
+        for data_point_name in self.config['series']:
+            data_point = Data.plugin.dictionary[data_point_name]
+            if not data_point.has_data:
                 continue
-            if len(data_x) != len(data_y):
-                self.logger.error(f'XY sizes mismatch for {ser['y']} (x:{len(data_x)} y:{len(data_y)})')
-                data_y = data_y[-len(data_x):]
+            data = data_point[:]
+            data_x = [p[0] for p in data]
+            data_y = [p[1] for p in data]
 
-            min_x = data_x[0]
+            if math.isnan(min_x) or min_x > min(data_x):
+                min_x = min(data_x)
+            if math.isnan(max_x) or max_x < max(data_x):
+                max_x = max(data_x)
 
-            if min_y[ser['y']] is None:
-                min_y[ser['y']] = min(data_y)
-            else:
-                min_y[ser['y']] = min(min_y[ser['y']], min(data_y))
+            if data_point_name not in min_y or min_y[data_point_name] > data_point.min:
+                min_y[data_point_name] = data_point.min
 
-            if max_y[ser['y']] is None:
-                max_y[ser['y']] = max(data_y)
-            else:
-                max_y[ser['y']] = max(max_y[ser['y']], max(data_y))
+            if data_point_name not in max_y or max_y[data_point_name] > data_point.max:
+                max_y[data_point_name] = data_point.max
 
-            dpg.set_value(self.series[ser['y']], [data_x, data_y])  # update the series with the new x and y data
+            dpg.set_value(self.series[data_point_name], [data_x, data_y])  # update the series with the new x and y data
 
-        dpg.set_axis_limits(self.x_axis, min_x, 0)
+        dpg.set_axis_limits(self.x_axis, min_x, max_x)
+        dpg.set_axis_limits(self.x_axis_relative, min_x-max_x, 0)
         for axis_name, axis in self.y_axis.items():
             margin = (max_y[axis_name] - min_y[axis_name]) * 0.1
             #if margin == 0:

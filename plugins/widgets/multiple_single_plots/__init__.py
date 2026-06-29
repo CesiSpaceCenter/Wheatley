@@ -70,18 +70,22 @@ class MultipleSinglePlotsWidget(BaseWidget):
 
         #Data.plugin.has_changed = False
 
-        # get the datapoint's data from the datastore
-        data = Data.plugin.data
-
         # update the axis limits to fit with new the data
         for plot in self.plots:
-            if len(data[plot['x']]) == 0 or len(data[plot['x']]) == 0:  # ignore if there is no data yet
+            if not Data.plugin.dictionary[plot['y']].has_data:  # ignore if there is no data yet
                 continue
 
-            data_x = data[plot['x']]
-            data_y = data[plot['y']]
+            data_point = Data.plugin.dictionary[plot['y']]
+            data = data_point[:]
+            data_x = [round(p[0], 2) for p in data]
+            data_y = [p[1] for p in data]
 
             dpg.set_value(plot['series'], [data_x, data_y])  # update the series with the new x and y data
 
             dpg.set_axis_limits(plot['x_axis'], data_x[0], data_x[-1])
-            dpg.set_axis_limits(plot['y_axis'], min(data_y)-1, max(data_y)+1)
+
+            # 10% margin on y-axis
+            margin = (data_point.max - data_point.min) * 0.1
+            if margin < 0.1:
+                margin = 1
+            dpg.set_axis_limits(plot['y_axis'], data_point.min - margin, data_point.max + margin)
