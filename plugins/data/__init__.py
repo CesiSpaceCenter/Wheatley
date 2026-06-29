@@ -5,7 +5,7 @@ from plugins.base_plugin import BasePlugin
 from plugins.config_ui import ConfigUI
 from plugins.data.datapoint_config import DataPoint
 from plugins.data.data_source import DataSource
-from plugins.data.sources import teleplot#, udp, csvfile
+from plugins.data.sources import teleplot, udp#, csvfile
 
 
 class Data(BasePlugin):
@@ -14,8 +14,8 @@ class Data(BasePlugin):
     has_changed: bool = False
     sources: dict[str, type[DataSource]] = {
         #'CSV file': csv_file.CSV,
-        'Teleplot': teleplot.Teleplot
-        #'UDP': udp.UDP
+        'Teleplot': teleplot.Teleplot,
+        'UDP': udp.UDP
     }
     source: DataSource | None = None
     history_size = 1000
