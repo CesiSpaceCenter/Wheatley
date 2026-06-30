@@ -10,7 +10,6 @@ class AllDataPlotsWidget(MultipleSinglePlotsWidget):
 
     config_definition = {
         **MultipleSinglePlotsWidget.config_definition,
-        'x': config_types.DataPoint(),
         'series': config_types.Base()  # hide the config ui for series, it will be manually initialized
     }
 
@@ -18,14 +17,7 @@ class AllDataPlotsWidget(MultipleSinglePlotsWidget):
         BaseWidget.__init__(self, *args)
         self.config['series'] = []
 
-        if not self.config['x']:
-            return
-
         for datapoint in Data.plugin.dictionary.values():
-            if datapoint.name != self.config['x']:
-                self.config['series'].append({
-                    'x': self.config['x'],
-                    'y': datapoint.name
-                })
+            self.config['series'].append(datapoint.name)
 
         MultipleSinglePlotsWidget.__init__(self, *args)

@@ -95,6 +95,6 @@ class PlotWidget(BaseWidget):
         dpg.set_axis_limits(self.x_axis_relative, min_x-max_x, 0)
         for axis_name, axis in self.y_axis.items():
             margin = (max_y[axis_name] - min_y[axis_name]) * 0.1
-            #if margin == 0:
-            #    margin = 1
+            if margin == 0:
+                margin = 1
             dpg.set_axis_limits(axis, min_y[axis_name]-margin, max_y[axis_name]+margin)
